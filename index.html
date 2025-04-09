@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coze API 聊天测试</title>
+    <style>
+        /* 整体样式 - 苹果风格设计 */
+        body {
+            font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
+                Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.5;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #1d1d1f;
+            text-align: center;
+        }
+
+        /* 输入区域样式 */
+        .input-section {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            border: 1px solid #d2d2d7;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #0071e3;
+            outline: none;
+        }
+
+        button {
+            background-color: #0071e3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #0077ed;
+        }
+
+        button:disabled {
+            background-color: #a1a1a6;
+            cursor: not-allowed;
+        }
+
+        /* 响应区域样式 */
+        .response-section {
+            margin-top: 24px;
+        }
+
+        #response-container {
+            background-color: #f5f5f7;
+            border-radius: 10px;
+            padding: 16px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-size: 14px;
+            overflow-wrap: break-word;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #6e6e73;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d2d2d7;
+            border-radius: 50%;
+            border-top-color: #0071e3;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* 调试区域 */
+        .debug-section {
+            margin-top: 20px;
+            border-top: 1px solid #d2d2d7;
+            padding-top: 16px;
+            display: none;
+        }
+
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: #6e6e73;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+            padding: 0;
+            margin-top: 8px;
+        }
+
+        .debug-log {
+            background-color: #f2f2f7;
+            border-radius: 6px;
+            padding: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .method-select {
+            display: flex;
+            margin-bottom: 16px;
+            gap: 12px;
+        }
+
+        .method-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .method-option input {
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Coze API 聊天测试</h1>
+        
+        <div class="input-section">
+            <div class="method-select">
+                <label class="method-option">
+                    <input type="radio" name="method" value="direct" checked> 直接请求API
+                </label>
+                <label class="method-option">
+                    <input type="radio" name="method" value="corsanywhere"> 使用CORS Anywhere代理
+                </label>
+            </div>
+            
+            <label for="user-input">输入你的问题:</label>
+            <textarea id="user-input" placeholder="例如: 2024年10月1日是星期几"></textarea>
+            <div style="margin-top: 16px; text-align: center;">
+                <button id="send-button">发送请求</button>
+            </div>
+        </div>
+        
+        <div class="response-section">
+            <label>AI 回复:</label>
+            <div id="response-container">等待发送请求...</div>
+            <div id="status" class="status"></div>
+            <button class="debug-toggle" id="debug-toggle">显示调试信息</button>
+            
+            <div class="debug-section" id="debug-section">
+                <div class="debug-log" id="debug-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const responseContainer = document.getElementById('response-container');
+            const statusDiv = document.getElementById('status');
+            const debugToggle = document.getElementById('debug-toggle');
+            const debugSection = document.getElementById('debug-section');
+            const debugLog = document.getElementById('debug-log');
+
+            // 设置默认示例问题
+            userInput.value = "2024年10月1日是星期几";
+
+            // 调试日志函数
+            function logDebug(message, data) {
+                const timestamp = new Date().toLocaleTimeString();
+                let logEntry = document.createElement('div');
+                
+                if (typeof data === 'undefined') {
+                    logEntry.textContent = `[${timestamp}] ${message}`;
+                } else {
+                    logEntry.textContent = `[${timestamp}] ${message}: ${typeof data === 'object' ? JSON.stringify(data) : data}`;
+                }
+                
+                debugLog.appendChild(logEntry);
+                debugLog.scrollTop = debugLog.scrollHeight;
+            }
+
+            // 显示/隐藏调试信息
+            debugToggle.addEventListener('click', function() {
+                if (debugSection.style.display === 'none' || debugSection.style.display === '') {
+                    debugSection.style.display = 'block';
+                    debugToggle.textContent = '隐藏调试信息';
+                } else {
+                    debugSection.style.display = 'none';
+                    debugToggle.textContent = '显示调试信息';
+                }
+            });
+
+            sendButton.addEventListener('click', async function() {
+                // 获取用户输入
+                const userMessage = userInput.value.trim();
+                
+                if (!userMessage) {
+                    alert('请输入内容后再发送');
+                    return;
+                }
+
+                // 获取选择的请求方式
+                const methodRadios = document.querySelectorAll('input[name="method"]');
+                let selectedMethod = 'direct';
+                for (const radio of methodRadios) {
+                    if (radio.checked) {
+                        selectedMethod = radio.value;
+                        break;
+                    }
+                }
+
+                // 禁用发送按钮，显示加载状态
+                sendButton.disabled = true;
+                responseContainer.textContent = "";
+                statusDiv.innerHTML = '<span class="loading"></span>正在等待 AI 回复...';
+                debugLog.innerHTML = ''; // 清空调试日志
+                // 自动显示调试信息，方便查看问题
+                debugSection.style.display = 'block';
+                debugToggle.textContent = '隐藏调试信息';
+
+                // API URLs
+                const API_URL = "https://api.coze.cn/v3/chat";
+                // 使用不同的CORS代理，因为cors-anywhere可能有限制
+                const CORS_PROXY = "https://corsproxy.io/?";
+                
+                // 根据选择的方法决定URL
+                const requestUrl = selectedMethod === 'direct' ? API_URL : CORS_PROXY + encodeURIComponent(API_URL);
+
+                try {
+                    // 准备要发送的数据
+                    const requestData = {
+                        bot_id: "7489041438790484009",
+                        user_id: "123456789",
+                        stream: true,
+                        auto_save_history: true,
+                        additional_messages: [
+                            {
+                                role: "user",
+                                content: userMessage,
+                                content_type: "text"
+                            }
+                        ]
+                    };
+
+                    logDebug("发送请求到", requestUrl);
+                    logDebug("请求数据", requestData);
+
+                    // 发起 fetch 请求
+                    const response = await fetch(requestUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer pat_Fl4a5XU7dGl8Oy7RzkaGQAYouQ3a46CqhIo16AOpPvKxP2WQDJpjdrsVk6aRK2sC',
+                            'Content-Type': 'application/json',
+                            'Accept': 'text/event-stream'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    logDebug("收到响应状态", response.status + " " + response.statusText);
+                    
+                    if (!response.ok) {
+                        throw new Error(`API错误: ${response.status} ${response.statusText}`);
+                    }
+
+                    if (!response.body) {
+                        throw new Error('你的浏览器不支持流式响应');
+                    }
+
+                    // 处理流式响应
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let fullText = '';
+                    let buffer = ''; // 用于处理不完整的数据块
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        
+                        if (done) {
+                            logDebug("数据流结束");
+                            break;
+                        }
+                        
+                        // 解码接收到的数据
+                        const chunk = decoder.decode(value, { stream: true });
+                        logDebug("接收到数据块", chunk);
+                        buffer += chunk;
+                        
+                        // 处理能找到的完整事件
+                        processChunk();
+                    }
+
+                    // 处理最后可能剩余的数据
+                    if (buffer.trim()) {
+                        processChunk(true);
+                    }
+
+                    function processChunk(isLast = false) {
+                        // 检查原始buffer中是否包含文本内容
+                        // 根据截图分析，Coze API实际返回的可能是纯文本而不是event-stream格式
+                        if (buffer.length > 0) {
+                            // 直接将整个buffer作为文本尝试处理
+                            logDebug("尝试作为纯文本处理", buffer);
+                            
+                            // 尝试从buffer中提取内容
+                            try {
+                                // 如果是JSON格式
+                                const jsonObj = JSON.parse(buffer);
+                                logDebug("成功解析为JSON对象", jsonObj);
+                                
+                                // 处理不同格式的JSON响应
+                                if (jsonObj.choices && jsonObj.choices[0]) {
+                                    // OpenAI类格式
+                                    if (jsonObj.choices[0].delta && jsonObj.choices[0].delta.content) {
+                                        fullText += jsonObj.choices[0].delta.content;
+                                    } else if (jsonObj.choices[0].message && jsonObj.choices[0].message.content) {
+                                        fullText = jsonObj.choices[0].message.content;
+                                    }
+                                } else if (jsonObj.message) {
+                                    // 简单消息格式
+                                    fullText = jsonObj.message;
+                                } else if (jsonObj.text || jsonObj.content) {
+                                    // 其他可能的格式
+                                    fullText = jsonObj.text || jsonObj.content;
+                                }
+                                
+                                // 更新显示
+                                responseContainer.textContent = fullText;
+                                buffer = ''; // 清空缓冲区
+                            } catch (e) {
+                                // 不是有效的JSON，可能是文本流或者其他格式
+                                logDebug("不是有效的JSON，尝试其他解析方式", e.message);
+                                
+                                // 尝试按行分割，处理可能的事件流格式
+                                let events = [];
+                                
+                                // 尝试标准event-stream格式 (事件之间用双换行分隔)
+                                if (buffer.includes('\n\n')) {
+                                    events = buffer.split('\n\n');
+                                    if (!isLast) {
+                                        buffer = events.pop() || ''; // 保留最后一个可能不完整的事件
+                                    } else {
+                                        buffer = '';
+                                    }
+                                } 
+                                // 尝试单行格式
+                                else if (buffer.includes('\n')) {
+                                    events = buffer.split('\n').filter(line => line.trim());
+                                    if (!isLast) {
+                                        buffer = events.pop() || ''; // 保留最后一个可能不完整的行
+                                    } else {
+                                        buffer = '';
+                                    }
+                                }
+                                // 只有一个事件且是最后一块数据
+                                else if (isLast) {
+                                    events = [buffer];
+                                    buffer = '';
+                                }
+                                
+                                // 处理找到的事件
+                                for (const eventText of events) {
+                                    if (!eventText.trim()) continue;
+                                    
+                                    logDebug("处理事件", eventText);
+                                    
+                                    // 特殊处理：直接提取事件中的纯文本内容
+                                    // 根据截图，API可能直接返回内容而不是结构化数据
+                                    const extractedText = extractTextFromEvent(eventText);
+                                    if (extractedText) {
+                                        fullText += extractedText;
+                                        responseContainer.textContent = fullText;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 从事件文本中提取可显示的内容
+                    function extractTextFromEvent(eventText) {
+                        // 尝试解析为JSON
+                        try {
+                            const jsonObj = JSON.parse(eventText.trim());
+                            logDebug("从事件中解析JSON成功", jsonObj);
+                            
+                            // 处理不同格式的JSON
+                            if (jsonObj.choices && jsonObj.choices[0]) {
+                                if (jsonObj.choices[0].delta && jsonObj.choices[0].delta.content) {
+                                    return jsonObj.choices[0].delta.content;
+                                } else if (jsonObj.choices[0].message && jsonObj.choices[0].message.content) {
+                                    return jsonObj.choices[0].message.content;
+                                }
+                            } else if (jsonObj.message) {
+                                return jsonObj.message;
+                            } else if (jsonObj.text || jsonObj.content) {
+                                return jsonObj.text || jsonObj.content;
+                            } else if (jsonObj.data && jsonObj.data.delta && jsonObj.data.delta.content) {
+                                // Coze特殊格式
+                                return jsonObj.data.delta.content;
+                            } else if (jsonObj.delta && jsonObj.delta.content) {
+                                // 另一种可能格式
+                                return jsonObj.delta.content;
+                            }
+                            return null;
+                        } catch (e) {
+                            // 不是JSON，检查是否是SSE格式
+                            if (eventText.includes('data:')) {
+                                const dataMatch = eventText.match(/data:(.*)/);
+                                if (dataMatch && dataMatch[1]) {
+                                    const dataContent = dataMatch[1].trim();
+                                    logDebug("从SSE数据中提取内容", dataContent);
+                                    
+                                    // 尝试解析data部分为JSON
+                                    try {
+                                        const jsonData = JSON.parse(dataContent);
+                                        if (jsonData.choices && jsonData.choices[0]) {
+                                            if (jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
+                                                return jsonData.choices[0].delta.content;
+                                            }
+                                        } else if (jsonData.delta && jsonData.delta.content) {
+                                            return jsonData.delta.content;
+                                        }
+                                        return null;
+                                    } catch (jsonErr) {
+                                        // 如果data不是JSON，可能是纯文本
+                                        return dataContent;
+                                    }
+                                }
+                            } else if (eventText.trim()) {
+                                // 可能是纯文本
+                                logDebug("处理为纯文本", eventText.trim());
+                                return eventText.trim();
+                            }
+                        }
+                        return null;
+                    }
+
+                    statusDiv.textContent = '接收完成';
+                } catch (error) {
+                    console.error('请求错误:', error);
+                    logDebug("发生错误", error.message);
+                    
+                    responseContainer.textContent = `发生错误: ${error.message}`;
+                    statusDiv.textContent = '请求失败';
+                    
+                    // 处理CORS错误
+                    if (error.message.includes('CORS') || error.message.includes('cross-origin')) {
+                        responseContainer.innerHTML = `
+                            <p>发生跨域请求错误 (CORS)。这是由于浏览器的安全策略导致的。</p>
+                            <p>解决方案:</p>
+                            <ol>
+                                <li>尝试选择"使用CORS Anywhere代理"选项</li>
+                                <li>或者使用浏览器插件临时禁用CORS (仅用于测试)</li>
+                                <li>或者部署自己的代理服务</li>
+                            </ol>
+                            <p><strong>技术详情:</strong> ${error.message}</p>
+                        `;
+                    }
+                } finally {
+                    // 恢复发送按钮
+                    sendButton.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
