@@ -532,20 +532,132 @@
                 return cleanedText;
             }
 
-            // 更新响应容器，渲染Markdown
-            function updateResponseWithMarkdown(text) {
-                // 检查是否是非暴力沟通教练的输出，如果是则进行特殊处理
-                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+            // 清理知识库模型输出
+            function cleanKnowledgeBaseOutput(text) {
+                // 记录原始内容
+                logDebug("开始清理知识库输出数据", text.substring(0, 100) + "...");
+                
                 let cleanedText = text;
                 
-                if (selectedBotType === "非暴力沟通教练" || 
+                // 1. 处理包含### 标记的格式
+                if (text.includes('###')) {
+                    // 分割内容
+                    const parts = text.split('###');
+                    
+                    // 检查第一部分是否包含JSON数据
+                    if (parts[0].includes('{') || parts[0].includes('"name"') || parts[0].includes('plugin_id')) {
+                        // 只保留分隔符后面的内容
+                        cleanedText = parts.slice(1).join('###').trim();
+                        logDebug("移除了知识库分隔符前的JSON数据");
+                    }
+                }
+                
+                // 2. 识别并移除JSON对象
+                if (cleanedText.includes('{') && (cleanedText.includes('"name"') || cleanedText.includes('plugin_id'))) {
+                    try {
+                        // 尝试查找JSON对象的边界
+                        const jsonStartIndex = cleanedText.indexOf('{');
+                        let jsonEndIndex = -1;
+                        let bracketsCount = 1;
+                        
+                        for (let i = jsonStartIndex + 1; i < cleanedText.length; i++) {
+                            if (cleanedText[i] === '{') {
+                                bracketsCount++;
+                            } else if (cleanedText[i] === '}') {
+                                bracketsCount--;
+                                if (bracketsCount === 0) {
+                                    jsonEndIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (jsonEndIndex > jsonStartIndex) {
+                            // 找到了完整的JSON对象，移除它
+                            const beforeJson = cleanedText.substring(0, jsonStartIndex).trim();
+                            const afterJson = cleanedText.substring(jsonEndIndex + 1).trim();
+                            cleanedText = (beforeJson + ' ' + afterJson).trim();
+                            logDebug("识别并移除了知识库JSON对象");
+                        }
+                    } catch (e) {
+                        logDebug("知识库JSON边界识别失败", e.message);
+                    }
+                }
+                
+                // 3. 使用正则表达式进一步清理
+                try {
+                    // 移除看起来像JSON对象的内容
+                    const jsonPattern = /\{[^{]*"name"[^}]*\}/g;
+                    cleanedText = cleanedText.replace(jsonPattern, '');
+                    
+                    // 移除插件标识信息
+                    const pluginPattern = /\{"plugin_id":[^}]*\}/g;
+                    cleanedText = cleanedText.replace(pluginPattern, '');
+                } catch (e) {
+                    logDebug("知识库正则替换失败", e.message);
+                }
+                
+                // 4. 最后的清理和格式化
+                
+                // 移除可能的JSON代码块
+                cleanedText = cleanedText.replace(/```json[\s\S]*?```/g, '');
+                
+                // 清理多余的空行和空格
+                cleanedText = cleanedText.replace(/^\s*[\r\n]/gm, '');
+                cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+                
+                return cleanedText.trim();
+            }
+
+            // 通用的输出清理函数，根据机器人类型选择合适的清理方法
+            function cleanOutput(text, botType) {
+                if (botType === "非暴力沟通教练" || 
                     text.includes('NVC_coach') || 
                     text.includes('"TOTAL_score"') || 
                     text.includes('"FEELING"') || 
                     text.includes('"OBSERVATION"')) {
+                    return cleanNVCCoachOutput(text);
+                } else if (botType === "非暴力沟通知识库") {
+                    return cleanKnowledgeBaseOutput(text);
+                } else {
+                    // 通用清理
+                    let cleanedText = text;
                     
-                    cleanedText = cleanNVCCoachOutput(text);
+                    // 移除JSON内容
+                    if (text.includes('{') && (text.includes('"name"') || text.includes('plugin_id'))) {
+                        try {
+                            const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
+                            cleanedText = text.replace(jsonRegex, '').trim();
+                            logDebug("通用清理 - 移除了JSON对象");
+                        } catch (e) {
+                            logDebug("通用清理正则匹配失败", e.message);
+                        }
+                    }
+                    
+                    // 如果有###分隔符
+                    if (cleanedText.includes('###')) {
+                        const parts = cleanedText.split('###');
+                        if (parts.length > 1 && parts[0].includes('{')) {
+                            cleanedText = parts.slice(1).join('###').trim();
+                            logDebug("通用清理 - 使用分隔符移除内容");
+                        }
+                    }
+                    
+                    // 清理多余的空行和空格
+                    cleanedText = cleanedText.replace(/^\s*[\r\n]/gm, '');
+                    cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+                    
+                    return cleanedText.trim();
                 }
+            }
+
+            // 更新响应容器，渲染Markdown
+            function updateResponseWithMarkdown(text) {
+                // 获取当前选择的机器人类型
+                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+                
+                // 清理输出
+                const cleanedText = cleanOutput(text, selectedBotType);
                 
                 // 渲染清理后的文本
                 responseContainer.innerHTML = renderMarkdown(cleanedText);
