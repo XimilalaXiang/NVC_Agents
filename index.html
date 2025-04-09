@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coze API 聊天测试</title>
+    <!-- 引入Marked.js库用于解析Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <!-- 引入代码高亮库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
     <style>
         /* 整体样式 - 苹果风格设计 */
         body {
@@ -92,9 +97,112 @@
             border-radius: 10px;
             padding: 16px;
             min-height: 200px;
-            white-space: pre-wrap;
-            font-size: 14px;
             overflow-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Markdown样式美化 */
+        .markdown-body {
+            color: #1d1d1f;
+        }
+
+        .markdown-body h1, 
+        .markdown-body h2, 
+        .markdown-body h3, 
+        .markdown-body h4, 
+        .markdown-body h5, 
+        .markdown-body h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .markdown-body h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: .3em;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: .3em;
+        }
+
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body ul, 
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body blockquote {
+            margin: 0;
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 3px solid #dfe2e5;
+        }
+
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 6px;
+        }
+
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+        }
+
+        .markdown-body pre > code {
+            padding: 0;
+            margin: 0;
+            font-size: 100%;
+            word-break: normal;
+            white-space: pre;
+            background: transparent;
+            border: 0;
+        }
+
+        .markdown-body table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .markdown-body table th {
+            font-weight: 600;
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #f6f8fa;
         }
 
         .status {
@@ -204,7 +312,7 @@
         
         <div class="response-section">
             <label>AI 回复:</label>
-            <div id="response-container">等待发送请求...</div>
+            <div id="response-container" class="markdown-body">等待发送请求...</div>
             <div id="status" class="status"></div>
             <div id="raw-data" class="raw-data"></div>
             <button class="debug-toggle" id="debug-toggle">显示调试信息</button>
@@ -228,6 +336,42 @@
 
             // 设置默认示例问题
             userInput.value = "2024年10月1日是星期几";
+
+            // 配置Marked选项
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-',
+                pedantic: false,
+                gfm: true,
+                breaks: true,
+                sanitize: false,
+                smartypants: false,
+                xhtml: false
+            });
+
+            // 将文本渲染为Markdown
+            function renderMarkdown(text) {
+                try {
+                    return marked.parse(text);
+                } catch (e) {
+                    console.error('Markdown渲染出错:', e);
+                    return text; // 如果渲染失败，返回原始文本
+                }
+            }
+
+            // 更新响应容器，渲染Markdown
+            function updateResponseWithMarkdown(text) {
+                responseContainer.innerHTML = renderMarkdown(text);
+                
+                // 代码高亮
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightBlock(block);
+                });
+            }
 
             // 调试日志函数
             function logDebug(message, data) {
@@ -282,7 +426,7 @@
 
                 // 禁用发送按钮，显示加载状态
                 sendButton.disabled = true;
-                responseContainer.textContent = "";
+                responseContainer.innerHTML = "";
                 statusDiv.innerHTML = '<span class="loading"></span>正在等待 AI 回复...';
                 debugLog.innerHTML = ''; // 清空调试日志
                 rawDataDiv.style.display = 'none'; // 隐藏原始数据
@@ -404,39 +548,39 @@
                                         // 尝试提取内容 - Coze可能使用的格式
                                         if (jsonData.data && jsonData.data.delta && jsonData.data.delta.content) {
                                             fullText += jsonData.data.delta.content;
-                                            responseContainer.textContent = fullText;
+                                            updateResponseWithMarkdown(fullText);
                                             logDebug("从SSE数据的delta.content中提取内容", jsonData.data.delta.content);
                                         }
                                         // OpenAI格式
                                         else if (jsonData.choices && jsonData.choices[0]) {
                                             if (jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
                                                 fullText += jsonData.choices[0].delta.content;
-                                                responseContainer.textContent = fullText;
+                                                updateResponseWithMarkdown(fullText);
                                                 logDebug("从OpenAI格式中提取内容", jsonData.choices[0].delta.content);
                                             }
                                         }
                                         // 其他可能的JSON格式
                                         else if (jsonData.content) {
                                             fullText += jsonData.content;
-                                            responseContainer.textContent = fullText;
+                                            updateResponseWithMarkdown(fullText);
                                             logDebug("从content字段提取内容", jsonData.content);
                                         }
                                         else if (jsonData.text) {
                                             fullText += jsonData.text;
-                                            responseContainer.textContent = fullText;
+                                            updateResponseWithMarkdown(fullText);
                                             logDebug("从text字段提取内容", jsonData.text);
                                         }
                                         // 简单情况：整个data内容就是要显示的文本
                                         else if (typeof jsonData === 'string') {
                                             fullText += jsonData;
-                                            responseContainer.textContent = fullText;
+                                            updateResponseWithMarkdown(fullText);
                                             logDebug("将整个JSON字符串作为内容", jsonData);
                                         }
                                     } catch (e) {
                                         // 如果不是有效的JSON，可能data本身就是文本内容
                                         logDebug("SSE数据不是有效JSON，尝试作为纯文本", event.data);
                                         fullText += event.data;
-                                        responseContainer.textContent = fullText;
+                                        updateResponseWithMarkdown(fullText);
                                     }
                                 }
                             }
@@ -460,7 +604,7 @@
                             // 处理可能的JSON格式
                             if (json.data && json.data.delta && json.data.delta.content) {
                                 fullText += json.data.delta.content;
-                                responseContainer.textContent = fullText;
+                                updateResponseWithMarkdown(fullText);
                                 logDebug("从JSON中提取delta.content", json.data.delta.content);
                                 buffer = '';
                                 return true;
@@ -468,7 +612,7 @@
                             else if (json.text || json.content) {
                                 const content = json.text || json.content;
                                 fullText += content;
-                                responseContainer.textContent = fullText;
+                                updateResponseWithMarkdown(fullText);
                                 logDebug("从JSON中提取text/content", content);
                                 buffer = '';
                                 return true;
@@ -497,7 +641,7 @@
                                             const dataObj = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
                                             if (dataObj.delta && dataObj.delta.content) {
                                                 fullText += dataObj.delta.content;
-                                                responseContainer.textContent = fullText;
+                                                updateResponseWithMarkdown(fullText);
                                                 logDebug("从conversation.message.delta事件提取内容", dataObj.delta.content);
                                                 foundContent = true;
                                             }
@@ -509,13 +653,13 @@
                                 // 直接检查是否有内容相关字段
                                 else if (json.delta && json.delta.content) {
                                     fullText += json.delta.content;
-                                    responseContainer.textContent = fullText;
+                                    updateResponseWithMarkdown(fullText);
                                     logDebug("从delta.content字段提取内容", json.delta.content);
                                     foundContent = true;
                                 }
                                 else if (json.content) {
                                     fullText += json.content;
-                                    responseContainer.textContent = fullText;
+                                    updateResponseWithMarkdown(fullText);
                                     logDebug("从content字段提取内容", json.content);
                                     foundContent = true;
                                 }
@@ -534,7 +678,7 @@
                         if (isLast && data.trim()) {
                             logDebug("将整个响应作为纯文本处理", data);
                             fullText = data.trim();
-                            responseContainer.textContent = fullText;
+                            updateResponseWithMarkdown(fullText);
                             buffer = '';
                             return true;
                         }
@@ -586,7 +730,7 @@
                     
                     // 最后的验证：如果处理后仍然没有内容，则显示错误信息
                     if (!fullText) {
-                        responseContainer.textContent = "无法解析API返回的内容。请查看调试信息，了解返回的原始数据。";
+                        responseContainer.innerHTML = "无法解析API返回的内容。请查看调试信息，了解返回的原始数据。";
                     }
                     
                 } catch (error) {
