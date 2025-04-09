@@ -161,6 +161,19 @@
             margin-right: 6px;
         }
 
+        /* 原始数据显示 */
+        .raw-data {
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 8px;
+            background-color: #f2f2f7;
+            border-radius: 6px;
+            max-height: 80px;
+            overflow-y: auto;
+            display: none;
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -178,7 +191,7 @@
                     <input type="radio" name="method" value="direct" checked> 直接请求API
                 </label>
                 <label class="method-option">
-                    <input type="radio" name="method" value="corsanywhere"> 使用CORS Anywhere代理
+                    <input type="radio" name="method" value="corsanywhere"> 使用CORS代理
                 </label>
             </div>
             
@@ -193,6 +206,7 @@
             <label>AI 回复:</label>
             <div id="response-container">等待发送请求...</div>
             <div id="status" class="status"></div>
+            <div id="raw-data" class="raw-data"></div>
             <button class="debug-toggle" id="debug-toggle">显示调试信息</button>
             
             <div class="debug-section" id="debug-section">
@@ -210,6 +224,7 @@
             const debugToggle = document.getElementById('debug-toggle');
             const debugSection = document.getElementById('debug-section');
             const debugLog = document.getElementById('debug-log');
+            const rawDataDiv = document.getElementById('raw-data');
 
             // 设置默认示例问题
             userInput.value = "2024年10月1日是星期几";
@@ -240,6 +255,12 @@
                 }
             });
 
+            // 显示原始数据
+            function showRawData(data) {
+                rawDataDiv.textContent = data;
+                rawDataDiv.style.display = 'block';
+            }
+
             sendButton.addEventListener('click', async function() {
                 // 获取用户输入
                 const userMessage = userInput.value.trim();
@@ -264,6 +285,8 @@
                 responseContainer.textContent = "";
                 statusDiv.innerHTML = '<span class="loading"></span>正在等待 AI 回复...';
                 debugLog.innerHTML = ''; // 清空调试日志
+                rawDataDiv.style.display = 'none'; // 隐藏原始数据
+                
                 // 自动显示调试信息，方便查看问题
                 debugSection.style.display = 'block';
                 debugToggle.textContent = '隐藏调试信息';
@@ -307,6 +330,7 @@
                     });
 
                     logDebug("收到响应状态", response.status + " " + response.statusText);
+                    logDebug("响应头", JSON.stringify(Object.fromEntries([...response.headers])));
                     
                     if (!response.ok) {
                         throw new Error(`API错误: ${response.status} ${response.statusText}`);
@@ -321,6 +345,7 @@
                     const decoder = new TextDecoder();
                     let fullText = '';
                     let buffer = ''; // 用于处理不完整的数据块
+                    let allChunks = ''; // 保存所有接收到的数据
 
                     while (true) {
                         const { done, value } = await reader.read();
@@ -332,159 +357,238 @@
                         
                         // 解码接收到的数据
                         const chunk = decoder.decode(value, { stream: true });
-                        logDebug("接收到数据块", chunk);
+                        allChunks += chunk; // 收集所有数据块
+                        logDebug("接收到数据块 (长度: " + chunk.length + ")", chunk);
                         buffer += chunk;
                         
-                        // 处理能找到的完整事件
-                        processChunk();
+                        // 显示接收到的原始数据以便调试
+                        showRawData(allChunks);
+
+                        /* 
+                           Coze API可能使用的是SSE格式 (Server-Sent Events)
+                           规范格式如下:
+                           event: eventType
+                           data: eventData
+
+                           或者它可能使用的是自定义格式，我们尝试各种解析方法
+                        */
+
+                        // 试图从buffer中提取会话内容
+                        extractContent(buffer);
                     }
 
                     // 处理最后可能剩余的数据
                     if (buffer.trim()) {
-                        processChunk(true);
+                        extractContent(buffer, true);
                     }
 
-                    function processChunk(isLast = false) {
-                        // 检查原始buffer中是否包含文本内容
-                        // 根据截图分析，Coze API实际返回的可能是纯文本而不是event-stream格式
-                        if (buffer.length > 0) {
-                            // 直接将整个buffer作为文本尝试处理
-                            logDebug("尝试作为纯文本处理", buffer);
+                    // 尝试从SSE格式、JSON或纯文本中提取内容
+                    function extractContent(data, isLast = false) {
+                        if (!data || data.trim() === '') return;
+
+                        // 1. 尝试按照SSE格式解析（event/data对）
+                        const events = parseSSE(data);
+                        if (events.length > 0) {
+                            // 成功解析为SSE格式
+                            logDebug("检测到SSE格式事件数量", events.length);
                             
-                            // 尝试从buffer中提取内容
-                            try {
-                                // 如果是JSON格式
-                                const jsonObj = JSON.parse(buffer);
-                                logDebug("成功解析为JSON对象", jsonObj);
+                            for (const event of events) {
+                                logDebug("处理SSE事件", JSON.stringify(event));
                                 
-                                // 处理不同格式的JSON响应
-                                if (jsonObj.choices && jsonObj.choices[0]) {
-                                    // OpenAI类格式
-                                    if (jsonObj.choices[0].delta && jsonObj.choices[0].delta.content) {
-                                        fullText += jsonObj.choices[0].delta.content;
-                                    } else if (jsonObj.choices[0].message && jsonObj.choices[0].message.content) {
-                                        fullText = jsonObj.choices[0].message.content;
-                                    }
-                                } else if (jsonObj.message) {
-                                    // 简单消息格式
-                                    fullText = jsonObj.message;
-                                } else if (jsonObj.text || jsonObj.content) {
-                                    // 其他可能的格式
-                                    fullText = jsonObj.text || jsonObj.content;
-                                }
-                                
-                                // 更新显示
-                                responseContainer.textContent = fullText;
-                                buffer = ''; // 清空缓冲区
-                            } catch (e) {
-                                // 不是有效的JSON，可能是文本流或者其他格式
-                                logDebug("不是有效的JSON，尝试其他解析方式", e.message);
-                                
-                                // 尝试按行分割，处理可能的事件流格式
-                                let events = [];
-                                
-                                // 尝试标准event-stream格式 (事件之间用双换行分隔)
-                                if (buffer.includes('\n\n')) {
-                                    events = buffer.split('\n\n');
-                                    if (!isLast) {
-                                        buffer = events.pop() || ''; // 保留最后一个可能不完整的事件
-                                    } else {
-                                        buffer = '';
-                                    }
-                                } 
-                                // 尝试单行格式
-                                else if (buffer.includes('\n')) {
-                                    events = buffer.split('\n').filter(line => line.trim());
-                                    if (!isLast) {
-                                        buffer = events.pop() || ''; // 保留最后一个可能不完整的行
-                                    } else {
-                                        buffer = '';
-                                    }
-                                }
-                                // 只有一个事件且是最后一块数据
-                                else if (isLast) {
-                                    events = [buffer];
-                                    buffer = '';
-                                }
-                                
-                                // 处理找到的事件
-                                for (const eventText of events) {
-                                    if (!eventText.trim()) continue;
-                                    
-                                    logDebug("处理事件", eventText);
-                                    
-                                    // 特殊处理：直接提取事件中的纯文本内容
-                                    // 根据截图，API可能直接返回内容而不是结构化数据
-                                    const extractedText = extractTextFromEvent(eventText);
-                                    if (extractedText) {
-                                        fullText += extractedText;
+                                if (event.data) {
+                                    try {
+                                        // 尝试将data解析为JSON
+                                        const jsonData = JSON.parse(event.data);
+                                        logDebug("解析SSE数据为JSON", jsonData);
+                                        
+                                        // 尝试提取内容 - Coze可能使用的格式
+                                        if (jsonData.data && jsonData.data.delta && jsonData.data.delta.content) {
+                                            fullText += jsonData.data.delta.content;
+                                            responseContainer.textContent = fullText;
+                                            logDebug("从SSE数据的delta.content中提取内容", jsonData.data.delta.content);
+                                        }
+                                        // OpenAI格式
+                                        else if (jsonData.choices && jsonData.choices[0]) {
+                                            if (jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
+                                                fullText += jsonData.choices[0].delta.content;
+                                                responseContainer.textContent = fullText;
+                                                logDebug("从OpenAI格式中提取内容", jsonData.choices[0].delta.content);
+                                            }
+                                        }
+                                        // 其他可能的JSON格式
+                                        else if (jsonData.content) {
+                                            fullText += jsonData.content;
+                                            responseContainer.textContent = fullText;
+                                            logDebug("从content字段提取内容", jsonData.content);
+                                        }
+                                        else if (jsonData.text) {
+                                            fullText += jsonData.text;
+                                            responseContainer.textContent = fullText;
+                                            logDebug("从text字段提取内容", jsonData.text);
+                                        }
+                                        // 简单情况：整个data内容就是要显示的文本
+                                        else if (typeof jsonData === 'string') {
+                                            fullText += jsonData;
+                                            responseContainer.textContent = fullText;
+                                            logDebug("将整个JSON字符串作为内容", jsonData);
+                                        }
+                                    } catch (e) {
+                                        // 如果不是有效的JSON，可能data本身就是文本内容
+                                        logDebug("SSE数据不是有效JSON，尝试作为纯文本", event.data);
+                                        fullText += event.data;
                                         responseContainer.textContent = fullText;
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    // 从事件文本中提取可显示的内容
-                    function extractTextFromEvent(eventText) {
-                        // 尝试解析为JSON
-                        try {
-                            const jsonObj = JSON.parse(eventText.trim());
-                            logDebug("从事件中解析JSON成功", jsonObj);
                             
-                            // 处理不同格式的JSON
-                            if (jsonObj.choices && jsonObj.choices[0]) {
-                                if (jsonObj.choices[0].delta && jsonObj.choices[0].delta.content) {
-                                    return jsonObj.choices[0].delta.content;
-                                } else if (jsonObj.choices[0].message && jsonObj.choices[0].message.content) {
-                                    return jsonObj.choices[0].message.content;
-                                }
-                            } else if (jsonObj.message) {
-                                return jsonObj.message;
-                            } else if (jsonObj.text || jsonObj.content) {
-                                return jsonObj.text || jsonObj.content;
-                            } else if (jsonObj.data && jsonObj.data.delta && jsonObj.data.delta.content) {
-                                // Coze特殊格式
-                                return jsonObj.data.delta.content;
-                            } else if (jsonObj.delta && jsonObj.delta.content) {
-                                // 另一种可能格式
-                                return jsonObj.delta.content;
+                            // 更新buffer，移除已处理的部分
+                            const lastEventEnd = data.lastIndexOf("\n\n");
+                            if (lastEventEnd > -1 && !isLast) {
+                                buffer = data.substring(lastEventEnd + 2);
+                            } else if (isLast) {
+                                buffer = '';
                             }
-                            return null;
+                            
+                            return true;
+                        }
+                        
+                        // 2. 如果不是SSE格式，尝试直接解析JSON (整个buffer作为一个JSON对象)
+                        try {
+                            const json = JSON.parse(data);
+                            logDebug("整个数据块解析为单个JSON", json);
+                            
+                            // 处理可能的JSON格式
+                            if (json.data && json.data.delta && json.data.delta.content) {
+                                fullText += json.data.delta.content;
+                                responseContainer.textContent = fullText;
+                                logDebug("从JSON中提取delta.content", json.data.delta.content);
+                                buffer = '';
+                                return true;
+                            }
+                            else if (json.text || json.content) {
+                                const content = json.text || json.content;
+                                fullText += content;
+                                responseContainer.textContent = fullText;
+                                logDebug("从JSON中提取text/content", content);
+                                buffer = '';
+                                return true;
+                            }
                         } catch (e) {
-                            // 不是JSON，检查是否是SSE格式
-                            if (eventText.includes('data:')) {
-                                const dataMatch = eventText.match(/data:(.*)/);
-                                if (dataMatch && dataMatch[1]) {
-                                    const dataContent = dataMatch[1].trim();
-                                    logDebug("从SSE数据中提取内容", dataContent);
+                            logDebug("不是单个JSON对象", e.message);
+                        }
+                        
+                        // 3. 尝试逐行解析JSON
+                        const lines = data.split("\n").filter(line => line.trim());
+                        let foundContent = false;
+                        
+                        for (const line of lines) {
+                            try {
+                                const json = JSON.parse(line);
+                                logDebug("逐行JSON解析成功", json);
+                                
+                                // 检查常见的JSON模式
+                                if (json.event && json.data) {
+                                    // 事件类型的JSON
+                                    logDebug("检测到事件类型JSON", {event: json.event, data: json.data});
                                     
-                                    // 尝试解析data部分为JSON
-                                    try {
-                                        const jsonData = JSON.parse(dataContent);
-                                        if (jsonData.choices && jsonData.choices[0]) {
-                                            if (jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
-                                                return jsonData.choices[0].delta.content;
+                                    // 检查是否是文本内容事件
+                                    if (json.event === "conversation.message.delta") {
+                                        try {
+                                            const dataObj = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
+                                            if (dataObj.delta && dataObj.delta.content) {
+                                                fullText += dataObj.delta.content;
+                                                responseContainer.textContent = fullText;
+                                                logDebug("从conversation.message.delta事件提取内容", dataObj.delta.content);
+                                                foundContent = true;
                                             }
-                                        } else if (jsonData.delta && jsonData.delta.content) {
-                                            return jsonData.delta.content;
+                                        } catch (e) {
+                                            logDebug("解析delta事件数据失败", e.message);
                                         }
-                                        return null;
-                                    } catch (jsonErr) {
-                                        // 如果data不是JSON，可能是纯文本
-                                        return dataContent;
                                     }
                                 }
-                            } else if (eventText.trim()) {
-                                // 可能是纯文本
-                                logDebug("处理为纯文本", eventText.trim());
-                                return eventText.trim();
+                                // 直接检查是否有内容相关字段
+                                else if (json.delta && json.delta.content) {
+                                    fullText += json.delta.content;
+                                    responseContainer.textContent = fullText;
+                                    logDebug("从delta.content字段提取内容", json.delta.content);
+                                    foundContent = true;
+                                }
+                                else if (json.content) {
+                                    fullText += json.content;
+                                    responseContainer.textContent = fullText;
+                                    logDebug("从content字段提取内容", json.content);
+                                    foundContent = true;
+                                }
+                            } catch (e) {
+                                // 不是有效的JSON行，忽略
                             }
                         }
-                        return null;
+                        
+                        if (foundContent) {
+                            buffer = '';
+                            return true;
+                        }
+                        
+                        // 4. 最后尝试，检查是否包含纯文本回复
+                        // 有些API可能直接返回文本而不是JSON或SSE格式
+                        if (isLast && data.trim()) {
+                            logDebug("将整个响应作为纯文本处理", data);
+                            fullText = data.trim();
+                            responseContainer.textContent = fullText;
+                            buffer = '';
+                            return true;
+                        }
+                        
+                        return false;
                     }
-
+                    
+                    // 解析SSE格式数据
+                    function parseSSE(data) {
+                        if (!data.includes('event:') && !data.includes('data:')) {
+                            return [];
+                        }
+                        
+                        const events = [];
+                        const eventChunks = data.split('\n\n');
+                        
+                        for (const chunk of eventChunks) {
+                            if (!chunk.trim()) continue;
+                            
+                            const event = {};
+                            const lines = chunk.split('\n');
+                            
+                            for (const line of lines) {
+                                if (line.startsWith('event:')) {
+                                    event.event = line.substring(6).trim();
+                                } else if (line.startsWith('data:')) {
+                                    event.data = line.substring(5).trim();
+                                } else if (line.startsWith('id:')) {
+                                    event.id = line.substring(3).trim();
+                                }
+                            }
+                            
+                            if (Object.keys(event).length > 0) {
+                                events.push(event);
+                            }
+                        }
+                        
+                        return events;
+                    }
+                    
+                    // Coze API响应完成
                     statusDiv.textContent = '接收完成';
+                    
+                    // 如果到这里还没有内容，最后尝试解析整个收集到的数据
+                    if (!fullText && allChunks) {
+                        logDebug("尝试解析完整响应", allChunks);
+                        extractContent(allChunks, true);
+                    }
+                    
+                    // 最后的验证：如果处理后仍然没有内容，则显示错误信息
+                    if (!fullText) {
+                        responseContainer.textContent = "无法解析API返回的内容。请查看调试信息，了解返回的原始数据。";
+                    }
+                    
                 } catch (error) {
                     console.error('请求错误:', error);
                     logDebug("发生错误", error.message);
@@ -498,7 +602,7 @@
                             <p>发生跨域请求错误 (CORS)。这是由于浏览器的安全策略导致的。</p>
                             <p>解决方案:</p>
                             <ol>
-                                <li>尝试选择"使用CORS Anywhere代理"选项</li>
+                                <li>尝试选择"使用CORS代理"选项</li>
                                 <li>或者使用浏览器插件临时禁用CORS (仅用于测试)</li>
                                 <li>或者部署自己的代理服务</li>
                             </ol>
