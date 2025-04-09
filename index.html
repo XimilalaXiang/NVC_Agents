@@ -395,9 +395,160 @@
                 }
             }
 
+            // 过滤非暴力沟通教练原始JSON输出数据
+            function cleanNVCCoachOutput(text) {
+                // 记录原始内容
+                logDebug("开始清理NVC教练输出数据", text.substring(0, 100) + "...");
+                
+                // 如果文本不包含任何需要过滤的标志，直接返回
+                if (!text.includes('{') && !text.includes('"TOTAL_score"') && 
+                    !text.includes('"FEELING"') && !text.includes('"OBSERVATION"') && 
+                    !text.includes('ts-NVC_coach') && !text.includes('###')) {
+                    return text;
+                }
+                
+                let cleanedText = text;
+                
+                // 1. 处理包含### 标记的格式 (最常见的格式)
+                if (text.includes('###')) {
+                    // 分割内容
+                    const parts = text.split('###');
+                    
+                    // 检查第一部分是否包含JSON数据
+                    if (parts[0].includes('{') && 
+                        (parts[0].includes('"name"') || parts[0].includes('"TOTAL_score"') || 
+                         parts[0].includes('"FEELING"') || parts[0].includes('NVC_coach'))) {
+                        
+                        // 只保留分隔符后面的内容，通常是模型的实际输出
+                        cleanedText = parts.slice(1).join('###').trim();
+                        logDebug("移除了分隔符前的JSON数据");
+                    }
+                }
+                
+                // 2. 处理整个响应都是JSON的情况
+                else if (text.trim().startsWith('{') && text.trim().endsWith('}')) {
+                    try {
+                        // 尝试解析为JSON
+                        const json = JSON.parse(text);
+                        
+                        // 如果包含观察模块等特定格式，提取出这些内容
+                        let extractedContent = [];
+                        
+                        // 观察模块
+                        if (json.OBSERVATION && typeof json.OBSERVATION === 'string') {
+                            extractedContent.push(`观察模块:\n表现: ${json.OBSERVATION}`);
+                            if (json.OBSERVATION_suggesti) {
+                                extractedContent.push(`建议表达: ${json.OBSERVATION_suggesti}`);
+                            }
+                        }
+                        
+                        // 感受模块
+                        if (json.FEELING && typeof json.FEELING === 'string') {
+                            extractedContent.push(`感受模块:\n表现: ${json.FEELING}`);
+                            if (json.FEELING_suggestion) {
+                                extractedContent.push(`建议表达: ${json.FEELING_suggestion}`);
+                            }
+                        }
+                        
+                        // 需求模块
+                        if (json.NEED && typeof json.NEED === 'string') {
+                            extractedContent.push(`需求模块:\n表现: ${json.NEED}`);
+                            if (json.NEED_suggestion) {
+                                extractedContent.push(`建议表达: ${json.NEED_suggestion}`);
+                            }
+                        }
+                        
+                        // 请求模块
+                        if (json.REQUEST && typeof json.REQUEST === 'string') {
+                            extractedContent.push(`请求模块:\n表现: ${json.REQUEST}`);
+                            if (json.REQUEST_suggestion) {
+                                extractedContent.push(`建议表达: ${json.REQUEST_suggestion}`);
+                            }
+                        }
+                        
+                        if (extractedContent.length > 0) {
+                            cleanedText = extractedContent.join('\n\n');
+                            logDebug("从JSON中提取了模块内容");
+                        }
+                    } catch (e) {
+                        logDebug("JSON解析失败", e.message);
+                    }
+                }
+                
+                // 3. 处理混合格式 (JSON + 文本)
+                else {
+                    // 标识非暴力沟通模块的标记
+                    const moduleMarkers = ['观察模块:', '感受模块:', '需求模块:', '请求模块:'];
+                    
+                    // 找到第一个模块标记
+                    let firstModuleIndex = -1;
+                    for (const marker of moduleMarkers) {
+                        const idx = text.indexOf(marker);
+                        if (idx !== -1 && (firstModuleIndex === -1 || idx < firstModuleIndex)) {
+                            firstModuleIndex = idx;
+                        }
+                    }
+                    
+                    // 如果找到模块标记，从标记处开始截取
+                    if (firstModuleIndex !== -1) {
+                        cleanedText = text.substring(firstModuleIndex);
+                        logDebug("从第一个模块标记处截取内容", firstModuleIndex);
+                    } else {
+                        // 如果没有找到模块标记，尝试使用正则表达式移除JSON对象
+                        // 支持嵌套的复杂JSON
+                        try {
+                            const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
+                            const matches = text.match(jsonRegex);
+                            
+                            if (matches) {
+                                for (const match of matches) {
+                                    // 检查这个JSON是否含有我们要过滤的内容
+                                    if (match.includes('"TOTAL_score"') || 
+                                        match.includes('"FEELING"') || 
+                                        match.includes('"OBSERVATION"') || 
+                                        match.includes('NVC_coach')) {
+                                        cleanedText = text.replace(match, '').trim();
+                                        logDebug("移除了匹配的JSON对象");
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            logDebug("正则匹配处理失败", e.message);
+                        }
+                    }
+                }
+                
+                // 4. 最后的清理和格式化
+                
+                // 移除剩余可能的JSON代码块
+                cleanedText = cleanedText.replace(/```json[\s\S]*?```/g, '');
+                
+                // 清理多余的空行和空格
+                cleanedText = cleanedText.replace(/^\s*[\r\n]/gm, ''); 
+                cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+                cleanedText = cleanedText.trim();
+                
+                logDebug("清理后的文本", cleanedText.substring(0, 100) + "...");
+                return cleanedText;
+            }
+
             // 更新响应容器，渲染Markdown
             function updateResponseWithMarkdown(text) {
-                responseContainer.innerHTML = renderMarkdown(text);
+                // 检查是否是非暴力沟通教练的输出，如果是则进行特殊处理
+                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+                let cleanedText = text;
+                
+                if (selectedBotType === "非暴力沟通教练" || 
+                    text.includes('NVC_coach') || 
+                    text.includes('"TOTAL_score"') || 
+                    text.includes('"FEELING"') || 
+                    text.includes('"OBSERVATION"')) {
+                    
+                    cleanedText = cleanNVCCoachOutput(text);
+                }
+                
+                // 渲染清理后的文本
+                responseContainer.innerHTML = renderMarkdown(cleanedText);
                 
                 // 代码高亮
                 document.querySelectorAll('pre code').forEach((block) => {
