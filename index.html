@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coze API 聊天测试</title>
+    <title>非暴力沟通 AI 助手</title>
     <!-- 引入Marked.js库用于解析Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
     <!-- 引入代码高亮库 -->
@@ -282,6 +282,29 @@
             display: none;
         }
 
+        /* 机器人选择样式 */
+        .bot-select {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f5f5f7;
+            border-radius: 10px;
+        }
+
+        .bot-select select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        .bot-select select:focus {
+            border-color: #0071e3;
+            outline: none;
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -291,7 +314,15 @@
 </head>
 <body>
     <div class="container">
-        <h1>Coze API 聊天测试</h1>
+        <h1>非暴力沟通 AI 助手</h1>
+        
+        <div class="bot-select">
+            <label for="bot-select">选择助手:</label>
+            <select id="bot-select">
+                <option value="7483330179063087138">非暴力沟通教练</option>
+                <option value="7488916378381402131">非暴力沟通知识库</option>
+            </select>
+        </div>
         
         <div class="input-section">
             <div class="method-select">
@@ -304,7 +335,7 @@
             </div>
             
             <label for="user-input">输入你的问题:</label>
-            <textarea id="user-input" placeholder="例如: 2024年10月1日是星期几"></textarea>
+            <textarea id="user-input" placeholder="例如: 请介绍一下非暴力沟通的四个要素"></textarea>
             <div style="margin-top: 16px; text-align: center;">
                 <button id="send-button">发送请求</button>
             </div>
@@ -333,9 +364,10 @@
             const debugSection = document.getElementById('debug-section');
             const debugLog = document.getElementById('debug-log');
             const rawDataDiv = document.getElementById('raw-data');
+            const botSelect = document.getElementById('bot-select');
 
             // 设置默认示例问题
-            userInput.value = "2024年10月1日是星期几";
+            userInput.value = "请介绍一下非暴力沟通的四个要素";
 
             // 配置Marked选项
             marked.setOptions({
@@ -404,6 +436,19 @@
                 rawDataDiv.textContent = data;
                 rawDataDiv.style.display = 'block';
             }
+            
+            // 当机器人选择改变时，更新页面提示信息
+            botSelect.addEventListener('change', function() {
+                const selectedOption = botSelect.options[botSelect.selectedIndex];
+                const botType = selectedOption.textContent;
+                
+                // 更新默认问题提示
+                if (botType === "非暴力沟通教练") {
+                    userInput.placeholder = "例如: 请帮我分析一个冲突情境并提供非暴力沟通的建议";
+                } else if (botType === "非暴力沟通知识库") {
+                    userInput.placeholder = "例如: 请介绍一下非暴力沟通的四个要素";
+                }
+            });
 
             sendButton.addEventListener('click', async function() {
                 // 获取用户输入
@@ -414,6 +459,10 @@
                     return;
                 }
 
+                // 获取选择的机器人ID
+                const selectedBotId = botSelect.value;
+                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+                
                 // 获取选择的请求方式
                 const methodRadios = document.querySelectorAll('input[name="method"]');
                 let selectedMethod = 'direct';
@@ -427,7 +476,7 @@
                 // 禁用发送按钮，显示加载状态
                 sendButton.disabled = true;
                 responseContainer.innerHTML = "";
-                statusDiv.innerHTML = '<span class="loading"></span>正在等待 AI 回复...';
+                statusDiv.innerHTML = `<span class="loading"></span>正在等待 ${selectedBotType} 回复...`;
                 debugLog.innerHTML = ''; // 清空调试日志
                 rawDataDiv.style.display = 'none'; // 隐藏原始数据
                 
@@ -446,7 +495,7 @@
                 try {
                     // 准备要发送的数据
                     const requestData = {
-                        bot_id: "7483330179063087138",
+                        bot_id: selectedBotId,
                         user_id: "123456789",
                         stream: true,
                         auto_save_history: true,
@@ -720,7 +769,7 @@
                     }
                     
                     // Coze API响应完成
-                    statusDiv.textContent = '接收完成';
+                    statusDiv.textContent = `${selectedBotType} 回复完成`;
                     
                     // 如果到这里还没有内容，最后尝试解析整个收集到的数据
                     if (!fullText && allChunks) {
@@ -758,6 +807,9 @@
                     sendButton.disabled = false;
                 }
             });
+            
+            // 初始化时触发一次选择事件，更新提示信息
+            botSelect.dispatchEvent(new Event('change'));
         });
     </script>
 </body>
