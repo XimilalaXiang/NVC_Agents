@@ -537,23 +537,135 @@
                 // 记录原始内容
                 logDebug("开始清理知识库输出数据", text.substring(0, 100) + "...");
                 
+                // 如果文本不包含任何需要过滤的标志，直接返回
+                if (!text.includes('{') && !text.includes('技能:') && 
+                    !text.includes('context_mode') && !text.includes('knowledge_list') && 
+                    !text.includes('bot_id') && !text.includes('connector_id')) {
+                    return text;
+                }
+                
                 let cleanedText = text;
                 
-                // 1. 处理包含### 标记的格式
-                if (text.includes('###')) {
+                // 0. 处理截图中特定的内容格式 - 首先检查这个最具体的情况
+                if (cleanedText.includes('"status_code":0') && 
+                    (cleanedText.includes('我是非暴力沟通') || cleanedText.includes('理念传承者'))) {
+                    
+                    // 找到回复内容的实际开始位置
+                    const startMarkers = [
+                        '我是非暴力沟通',
+                        '理念传承者',
+                        '基于马歇尔',
+                        'Rosenberg博士',
+                        '1. 理念传承者'
+                    ];
+                    
+                    for (const marker of startMarkers) {
+                        if (cleanedText.includes(marker)) {
+                            const startPos = cleanedText.indexOf(marker);
+                            if (startPos > 0) {
+                                cleanedText = cleanedText.substring(startPos);
+                                logDebug("找到内容起始点并截取", marker);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 如果文本以 "1. " 开头，确保它是干净的段落开始
+                    if (/^\d+\.\s+/.test(cleanedText)) {
+                        cleanedText = cleanedText.trim();
+                        logDebug("保留编号列表格式");
+                    }
+                    
+                    // 移除所有反斜杠转义的JSON部分
+                    cleanedText = cleanedText.replace(/\\{[^}]*\\}/g, '');
+                    cleanedText = cleanedText.replace(/\\\\\"[^\\]*\\\\\"/g, '');
+                    
+                    return cleanedText.trim();
+                }
+                
+                // 1. 过滤特定于知识库的指令前缀
+                const instructions = [
+                    '技能: 1: 回答非暴力沟通相关问题',
+                    '技能 1: 回答非暴力沟通相关问题',
+                    '技能 2: 提供非暴力沟通案例',
+                    '技能 3: 解释非暴力沟通通念'
+                ];
+                
+                for (const instruction of instructions) {
+                    if (cleanedText.includes(instruction)) {
+                        const idx = cleanedText.indexOf(instruction);
+                        const lineEnd = cleanedText.indexOf('\n', idx);
+                        if (lineEnd > idx) {
+                            // 移除这一行指令
+                            cleanedText = cleanedText.substring(0, idx) + cleanedText.substring(lineEnd + 1);
+                            logDebug("移除了知识库指令", instruction);
+                        }
+                    }
+                }
+                
+                // 2. 处理包含### 标记的格式
+                if (cleanedText.includes('###')) {
                     // 分割内容
-                    const parts = text.split('###');
+                    const parts = cleanedText.split('###');
                     
                     // 检查第一部分是否包含JSON数据
-                    if (parts[0].includes('{') || parts[0].includes('"name"') || parts[0].includes('plugin_id')) {
+                    if (parts[0].includes('{') || parts[0].includes('"name"') || 
+                        parts[0].includes('plugin_id') || parts[0].includes('context_mode') || 
+                        parts[0].includes('knowledge_list')) {
                         // 只保留分隔符后面的内容
                         cleanedText = parts.slice(1).join('###').trim();
                         logDebug("移除了知识库分隔符前的JSON数据");
                     }
                 }
                 
-                // 2. 识别并移除JSON对象
-                if (cleanedText.includes('{') && (cleanedText.includes('"name"') || cleanedText.includes('plugin_id'))) {
+                // 3. 针对特定的知识库JSON格式进行过滤 (如截图所示)
+                if (cleanedText.includes('context_mode') && cleanedText.includes('knowledge_list')) {
+                    // 尝试找到这个大型JSON对象的结束位置
+                    const endMarkerCandidates = [
+                        '我是非暴力沟通',
+                        '理念传承者',
+                        '基于马歇尔',
+                        'Rosenberg博士',
+                        '1. 理念传承者'
+                    ];
+                    
+                    let endIndex = -1;
+                    for (const marker of endMarkerCandidates) {
+                        const idx = cleanedText.indexOf(marker);
+                        if (idx > 0) {
+                            endIndex = idx;
+                            break;
+                        }
+                    }
+                    
+                    if (endIndex > 0) {
+                        // 找到了结束位置，只保留后面的内容
+                        cleanedText = cleanedText.substring(endIndex);
+                        logDebug("使用标记找到并移除了知识库JSON数据");
+                    } else {
+                        // 如果找不到明确的结束标记，使用正则表达式尝试删除大括号配对的内容
+                        try {
+                            // 使用正则表达式匹配包含特定关键词的大型JSON
+                            const jsonRegex = /\{[^{]*?("context_mode"|"knowledge_list"|"bot_id")[^}]*?\}(?=\s*我是|$)/s;
+                            const match = cleanedText.match(jsonRegex);
+                            
+                            if (match) {
+                                // 移除匹配的内容及前面可能的空白
+                                cleanedText = cleanedText.replace(match[0], '').trim();
+                                logDebug("使用正则表达式移除了知识库JSON数据");
+                            }
+                        } catch (e) {
+                            logDebug("知识库JSON正则匹配失败", e.message);
+                        }
+                    }
+                }
+                
+                // 4. 识别并移除单独的JSON对象
+                if (cleanedText.includes('{') && (
+                    cleanedText.includes('"name"') || 
+                    cleanedText.includes('plugin_id') || 
+                    cleanedText.includes('bot_id') || 
+                    cleanedText.includes('connector_id'))) {
                     try {
                         // 尝试查找JSON对象的边界
                         const jsonStartIndex = cleanedText.indexOf('{');
@@ -577,27 +689,60 @@
                             const beforeJson = cleanedText.substring(0, jsonStartIndex).trim();
                             const afterJson = cleanedText.substring(jsonEndIndex + 1).trim();
                             cleanedText = (beforeJson + ' ' + afterJson).trim();
-                            logDebug("识别并移除了知识库JSON对象");
+                            logDebug("识别并移除了知识库JSON对象", `从${jsonStartIndex}到${jsonEndIndex}`);
                         }
                     } catch (e) {
                         logDebug("知识库JSON边界识别失败", e.message);
                     }
                 }
                 
-                // 3. 使用正则表达式进一步清理
+                // 5. 使用正则表达式进一步清理特定模式
                 try {
                     // 移除看起来像JSON对象的内容
-                    const jsonPattern = /\{[^{]*"name"[^}]*\}/g;
-                    cleanedText = cleanedText.replace(jsonPattern, '');
+                    const patterns = [
+                        /\{[^{]*?"name"[^}]*?\}/g,
+                        /\{"plugin_id":[^}]*?\}/g,
+                        /\{"id":[^{]*?"name":[^{]*?"NVC知识库[^}]*?\}/g,
+                        /\{"bot_id":[^}]*?"bot_name":[^}]*?\}/g,
+                        /\\"context_mode\\":\\"2\\",\\"history_round\\":\\"3\\",\\"ability\\":[^}]*?\}/g,
+                        /\{[^{]*?"context_ext"[^}]*?\}/g,
+                        // 截图中特定的JSON格式
+                        /\\"context_mode\\":\\"2\\",\\"history_round\\":\\"3\\",\\"ability\\":[^}]*\}/g,
+                        /\\"id\\":\\"7488916510170349604\\",\\"name\\":\\"NVC知识库[^}]*\}/g,
+                        /\\"bot_id\\":\\"7488916378381402131\\",\\"bot_name\\":\\"NVC知识库[^}]*\}/g
+                    ];
                     
-                    // 移除插件标识信息
-                    const pluginPattern = /\{"plugin_id":[^}]*\}/g;
-                    cleanedText = cleanedText.replace(pluginPattern, '');
+                    for (const pattern of patterns) {
+                        cleanedText = cleanedText.replace(pattern, '');
+                    }
+                    
+                    // 移除反斜杠转义的JSON数据
+                    cleanedText = cleanedText.replace(/\\\\"\\\\"context_mode\\\\"[^}]*?\\\\"\\\\"}/g, '');
+                    
+                    // 移除特定的指令和限制说明
+                    const prefixesToRemove = [
+                        /技能[^:]*: [^\n]+\n/g,
+                        /限制:[^\n]+\n/g,
+                        /\n- 只回答与非暴力沟通相关的问题[^\n]+\n/g,
+                        /\n- 引用知识库中的内容时[^\n]+\n/g,
+                        /\n- 所输出的内容应该精简清晰[^\n]+\n/g
+                    ];
+                    
+                    for (const prefix of prefixesToRemove) {
+                        cleanedText = cleanedText.replace(prefix, '\n');
+                    }
+                    
+                    // 清理双反斜杠序列
+                    cleanedText = cleanedText.replace(/\\\\/g, '');
+                    
+                    // 清理多余的转义引号和反斜杠
+                    cleanedText = cleanedText.replace(/\\"/g, '"');
+                    
                 } catch (e) {
                     logDebug("知识库正则替换失败", e.message);
                 }
                 
-                // 4. 最后的清理和格式化
+                // 6. 最后的清理和格式化
                 
                 // 移除可能的JSON代码块
                 cleanedText = cleanedText.replace(/```json[\s\S]*?```/g, '');
@@ -605,7 +750,14 @@
                 // 清理多余的空行和空格
                 cleanedText = cleanedText.replace(/^\s*[\r\n]/gm, '');
                 cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+                cleanedText = cleanedText.replace(/^\s*(.*?)\s*$/, '$1'); // 去除开头和结尾的空白
                 
+                // 如果清理后的文本以数字和点开头（如"1. 理念传承者"），确保它是一个段落的开始
+                if (/^\d+\.\s+/.test(cleanedText)) {
+                    cleanedText = cleanedText.trim();
+                }
+                
+                logDebug("知识库清理后的文本", cleanedText.substring(0, 100) + "...");
                 return cleanedText.trim();
             }
 
@@ -653,6 +805,40 @@
 
             // 更新响应容器，渲染Markdown
             function updateResponseWithMarkdown(text) {
+                // 前处理：检查是否包含特定的截图中显示的JSON格式
+                if (text.includes('技能 1: 回答非暴力沟通相关问题') || 
+                    (text.includes('bot_id') && text.includes('knowledge_list')) || 
+                    (text.includes('context_mode') && text.includes('status_code'))) {
+                    
+                    // 查找回复内容的实际开始位置
+                    const markers = ['我是非暴力沟通', '理念传承者', '基于马歇尔', '1. 理念'];
+                    let startPos = -1;
+                    
+                    for (const marker of markers) {
+                        const pos = text.indexOf(marker);
+                        if (pos > 0) {
+                            startPos = pos;
+                            break;
+                        }
+                    }
+                    
+                    if (startPos > 0) {
+                        // 直接截取从标记开始的内容
+                        const actualContent = text.substring(startPos).trim();
+                        logDebug("特殊处理：直接提取知识库回复内容", actualContent.substring(0, 50) + "...");
+                        
+                        // 渲染处理后的内容
+                        responseContainer.innerHTML = renderMarkdown(actualContent);
+                        
+                        // 代码高亮
+                        document.querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightBlock(block);
+                        });
+                        
+                        return; // 提前返回，不执行后续的过滤逻辑
+                    }
+                }
+                
                 // 获取当前选择的机器人类型
                 const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
                 
@@ -841,6 +1027,20 @@
                     // 尝试从SSE格式、JSON或纯文本中提取内容
                     function extractContent(data, isLast = false) {
                         if (!data || data.trim() === '') return;
+
+                        // 处理知识库特殊格式 - 在提取之前直接过滤
+                        if (data.includes('"status_code":0') && data.includes('我是非暴力沟通')) {
+                            // 直接查找"我是非暴力沟通"的位置
+                            const startPos = data.indexOf('我是非暴力沟通');
+                            if (startPos > 0) {
+                                // 保留从这个位置开始的文本
+                                fullText = data.substring(startPos);
+                                updateResponseWithMarkdown(fullText);
+                                logDebug("直接从知识库响应中提取内容", fullText.substring(0, 100) + "...");
+                                buffer = '';
+                                return true;
+                            }
+                        }
 
                         // 1. 尝试按照SSE格式解析（event/data对）
                         const events = parseSSE(data);
