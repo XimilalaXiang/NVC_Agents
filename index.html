@@ -917,56 +917,93 @@
 
             // 更新响应容器，渲染Markdown
             function updateResponseWithMarkdown(text) {
-                // 最终处理：清理末尾无用内容
-                text = cleanEndContent(text);
+                // 检查是否已经处理过相同的内容，防止重复渲染
+                const currentContent = responseContainer.textContent || '';
                 
-                // 前处理：检查是否包含特定的截图中显示的JSON格式
-                if (text.includes('技能 1: 回答非暴力沟通相关问题') || 
-                    (text.includes('bot_id') && text.includes('knowledge_list')) || 
-                    (text.includes('context_mode') && text.includes('status_code'))) {
+                // 只有当内容有变化时才进行处理和渲染
+                if (currentContent.trim() !== text.trim()) {
+                    // 最终处理：清理末尾无用内容
+                    const cleanedText = cleanEndContent(text);
                     
-                    // 查找回复内容的实际开始位置
-                    const markers = ['我是非暴力沟通', '理念传承者', '基于马歇尔', '1. 理念'];
-                    let startPos = -1;
+                    // 检查是否有重复的内容段落
+                    let finalText = cleanedText;
                     
-                    for (const marker of markers) {
-                        const pos = text.indexOf(marker);
-                        if (pos > 0) {
-                            startPos = pos;
-                            break;
+                    // 查找可能的分段位置
+                    const potentialBreakpoints = [
+                        '非暴力沟通（Nonviolent Communication, NVC）',
+                        '1. 观察 (Observation)',
+                        '观察模块:',
+                        '1. 理念传承者',
+                        '我是非暴力沟通',
+                        '基于马歇尔'
+                    ];
+                    
+                    // 查找是否有完整的重复段落
+                    for (const breakpoint of potentialBreakpoints) {
+                        const firstOccurrence = cleanedText.indexOf(breakpoint);
+                        if (firstOccurrence > 10) { // 确保不是第一句话
+                            const secondOccurrence = cleanedText.indexOf(breakpoint, firstOccurrence + 10);
+                            if (secondOccurrence !== -1) {
+                                // 找到重复的起始点，只保留到第一次出现为止
+                                finalText = cleanedText.substring(0, secondOccurrence).trim();
+                                logDebug(`在updateResponseWithMarkdown中检测到重复起点"${breakpoint}"，截断内容`);
+                                break;
+                            }
                         }
                     }
                     
-                    if (startPos > 0) {
-                        // 直接截取从标记开始的内容
-                        const actualContent = text.substring(startPos).trim();
-                        logDebug("特殊处理：直接提取知识库回复内容", actualContent.substring(0, 50) + "...");
+                    // 前处理：检查是否包含特定的截图中显示的JSON格式
+                    if (finalText.includes('技能 1: 回答非暴力沟通相关问题') || 
+                        (finalText.includes('bot_id') && finalText.includes('knowledge_list')) || 
+                        (finalText.includes('context_mode') && finalText.includes('status_code'))) {
                         
-                        // 渲染处理后的内容
-                        responseContainer.innerHTML = renderMarkdown(actualContent);
+                        // 查找回复内容的实际开始位置
+                        const markers = ['我是非暴力沟通', '理念传承者', '基于马歇尔', '1. 理念'];
+                        let startPos = -1;
                         
-                        // 代码高亮
-                        document.querySelectorAll('pre code').forEach((block) => {
-                            hljs.highlightBlock(block);
-                        });
+                        for (const marker of markers) {
+                            const pos = finalText.indexOf(marker);
+                            if (pos > 0) {
+                                startPos = pos;
+                                break;
+                            }
+                        }
                         
-                        return; // 提前返回，不执行后续的过滤逻辑
+                        if (startPos > 0) {
+                            // 直接截取从标记开始的内容
+                            const actualContent = finalText.substring(startPos).trim();
+                            logDebug("特殊处理：直接提取知识库回复内容", actualContent.substring(0, 50) + "...");
+                            
+                            // 渲染处理后的内容
+                            responseContainer.innerHTML = renderMarkdown(actualContent);
+                            
+                            // 代码高亮
+                            document.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightBlock(block);
+                            });
+                            
+                            return; // 提前返回，不执行后续的过滤逻辑
+                        }
                     }
+                    
+                    // 获取当前选择的机器人类型
+                    const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+                    
+                    // 清理输出 - 不再调用cleanEndContent，因为已经在前面调用过
+                    const finalCleanedText = cleanOutput(finalText, selectedBotType);
+                    
+                    // 渲染清理后的文本
+                    responseContainer.innerHTML = renderMarkdown(finalCleanedText);
+                    
+                    // 代码高亮
+                    document.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                    
+                    logDebug("更新响应内容", finalCleanedText.substring(0, 50) + "...");
+                } else {
+                    logDebug("内容无变化，跳过渲染");
                 }
-                
-                // 获取当前选择的机器人类型
-                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
-                
-                // 清理输出
-                const cleanedText = cleanOutput(text, selectedBotType);
-                
-                // 渲染清理后的文本
-                responseContainer.innerHTML = renderMarkdown(cleanedText);
-                
-                // 代码高亮
-                document.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightBlock(block);
-                });
             }
 
             // 调试日志函数
@@ -1103,6 +1140,7 @@
                     let fullText = '';
                     let buffer = ''; // 用于处理不完整的数据块
                     let allChunks = ''; // 保存所有接收到的数据
+                    let hasProcessedCompleteResponse = false; // 标记是否已处理过完整响应
 
                     while (true) {
                         const { done, value } = await reader.read();
@@ -1135,13 +1173,23 @@
                     }
 
                     // 处理最后可能剩余的数据
-                    if (buffer.trim()) {
+                    if (buffer.trim() && !hasProcessedCompleteResponse) {
+                        hasProcessedCompleteResponse = true;
                         extractContent(buffer, true);
                     }
 
                     // 尝试从SSE格式、JSON或纯文本中提取内容
                     function extractContent(data, isLast = false) {
                         if (!data || data.trim() === '') return;
+                        
+                        // 记录当前内容长度，用于检测是否有新内容添加
+                        const currentLength = fullText.length;
+                        
+                        // 检查数据是否包含msg_type，可能表示是重复的消息结束标记
+                        if (data.includes('"msg_type":"generate_answer_finish"') && fullText.length > 0 && !isLast) {
+                            logDebug("检测到结束标记，跳过处理");
+                            return false;
+                        }
 
                         // 处理知识库特殊格式 - 在提取之前直接过滤
                         if (data.includes('"status_code":0') && data.includes('我是非暴力沟通')) {
@@ -1149,9 +1197,13 @@
                             const startPos = data.indexOf('我是非暴力沟通');
                             if (startPos > 0) {
                                 // 保留从这个位置开始的文本
-                                fullText = data.substring(startPos);
-                                updateResponseWithMarkdown(fullText);
-                                logDebug("直接从知识库响应中提取内容", fullText.substring(0, 100) + "...");
+                                const extractedContent = data.substring(startPos);
+                                // 避免重复设置相同内容
+                                if (fullText !== extractedContent) {
+                                    fullText = extractedContent;
+                                    updateResponseWithMarkdown(fullText);
+                                    logDebug("直接从知识库响应中提取内容", fullText.substring(0, 100) + "...");
+                                }
                                 buffer = '';
                                 return true;
                             }
@@ -1163,6 +1215,7 @@
                             // 成功解析为SSE格式
                             logDebug("检测到SSE格式事件数量", events.length);
                             
+                            let newContent = '';
                             for (const event of events) {
                                 logDebug("处理SSE事件", JSON.stringify(event));
                                 
@@ -1174,42 +1227,42 @@
                                         
                                         // 尝试提取内容 - Coze可能使用的格式
                                         if (jsonData.data && jsonData.data.delta && jsonData.data.delta.content) {
-                                            fullText += jsonData.data.delta.content;
-                                            updateResponseWithMarkdown(fullText);
+                                            newContent += jsonData.data.delta.content;
                                             logDebug("从SSE数据的delta.content中提取内容", jsonData.data.delta.content);
                                         }
                                         // OpenAI格式
                                         else if (jsonData.choices && jsonData.choices[0]) {
                                             if (jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
-                                                fullText += jsonData.choices[0].delta.content;
-                                                updateResponseWithMarkdown(fullText);
+                                                newContent += jsonData.choices[0].delta.content;
                                                 logDebug("从OpenAI格式中提取内容", jsonData.choices[0].delta.content);
                                             }
                                         }
                                         // 其他可能的JSON格式
                                         else if (jsonData.content) {
-                                            fullText += jsonData.content;
-                                            updateResponseWithMarkdown(fullText);
+                                            newContent += jsonData.content;
                                             logDebug("从content字段提取内容", jsonData.content);
                                         }
                                         else if (jsonData.text) {
-                                            fullText += jsonData.text;
-                                            updateResponseWithMarkdown(fullText);
+                                            newContent += jsonData.text;
                                             logDebug("从text字段提取内容", jsonData.text);
                                         }
                                         // 简单情况：整个data内容就是要显示的文本
                                         else if (typeof jsonData === 'string') {
-                                            fullText += jsonData;
-                                            updateResponseWithMarkdown(fullText);
+                                            newContent += jsonData;
                                             logDebug("将整个JSON字符串作为内容", jsonData);
                                         }
                                     } catch (e) {
                                         // 如果不是有效的JSON，可能data本身就是文本内容
                                         logDebug("SSE数据不是有效JSON，尝试作为纯文本", event.data);
-                                        fullText += event.data;
-                                        updateResponseWithMarkdown(fullText);
+                                        newContent += event.data;
                                     }
                                 }
+                            }
+                            
+                            // 合并并更新内容，避免每次小更新就调用updateResponseWithMarkdown
+                            if (newContent) {
+                                fullText += newContent;
+                                updateResponseWithMarkdown(fullText);
                             }
                             
                             // 更新buffer，移除已处理的部分
@@ -1220,13 +1273,23 @@
                                 buffer = '';
                             }
                             
-                            return true;
+                            // 检查是否有新内容添加
+                            if (fullText.length > currentLength) {
+                                return true;
+                            }
                         }
                         
                         // 2. 如果不是SSE格式，尝试直接解析JSON (整个buffer作为一个JSON对象)
                         try {
                             const json = JSON.parse(data);
                             logDebug("整个数据块解析为单个JSON", json);
+                            
+                            // 如果包含msg_type并且是结束消息，且已有内容，则忽略此消息
+                            if (json.msg_type === "generate_answer_finish" && fullText.length > 0) {
+                                logDebug("收到结束消息，忽略处理");
+                                buffer = '';
+                                return true;
+                            }
                             
                             // 处理可能的JSON格式
                             if (json.data && json.data.delta && json.data.delta.content) {
@@ -1251,11 +1314,18 @@
                         // 3. 尝试逐行解析JSON
                         const lines = data.split("\n").filter(line => line.trim());
                         let foundContent = false;
+                        let newLineContent = '';
                         
                         for (const line of lines) {
                             try {
                                 const json = JSON.parse(line);
                                 logDebug("逐行JSON解析成功", json);
+                                
+                                // 如果是结束消息且已有内容，忽略
+                                if (json.msg_type === "generate_answer_finish" && fullText.length > 0) {
+                                    logDebug("收到行内结束消息，忽略");
+                                    continue;
+                                }
                                 
                                 // 检查常见的JSON模式
                                 if (json.event && json.data) {
@@ -1267,8 +1337,7 @@
                                         try {
                                             const dataObj = typeof json.data === 'string' ? JSON.parse(json.data) : json.data;
                                             if (dataObj.delta && dataObj.delta.content) {
-                                                fullText += dataObj.delta.content;
-                                                updateResponseWithMarkdown(fullText);
+                                                newLineContent += dataObj.delta.content;
                                                 logDebug("从conversation.message.delta事件提取内容", dataObj.delta.content);
                                                 foundContent = true;
                                             }
@@ -1279,14 +1348,12 @@
                                 }
                                 // 直接检查是否有内容相关字段
                                 else if (json.delta && json.delta.content) {
-                                    fullText += json.delta.content;
-                                    updateResponseWithMarkdown(fullText);
+                                    newLineContent += json.delta.content;
                                     logDebug("从delta.content字段提取内容", json.delta.content);
                                     foundContent = true;
                                 }
                                 else if (json.content) {
-                                    fullText += json.content;
-                                    updateResponseWithMarkdown(fullText);
+                                    newLineContent += json.content;
                                     logDebug("从content字段提取内容", json.content);
                                     foundContent = true;
                                 }
@@ -1295,7 +1362,9 @@
                             }
                         }
                         
-                        if (foundContent) {
+                        if (foundContent && newLineContent) {
+                            fullText += newLineContent;
+                            updateResponseWithMarkdown(fullText);
                             buffer = '';
                             return true;
                         }
@@ -1304,13 +1373,136 @@
                         // 有些API可能直接返回文本而不是JSON或SSE格式
                         if (isLast && data.trim()) {
                             logDebug("将整个响应作为纯文本处理", data);
-                            fullText = data.trim();
-                            updateResponseWithMarkdown(fullText);
+                            
+                            // 清理可能的元数据，避免重复内容
+                            let cleanedData = data;
+                            
+                            // 移除可能的msg_type部分
+                            const msgTypeIndex = cleanedData.lastIndexOf('{"msg_type":"generate_answer_finish"');
+                            if (msgTypeIndex !== -1) {
+                                cleanedData = cleanedData.substring(0, msgTypeIndex).trim();
+                                logDebug("从纯文本中移除了消息类型数据");
+                            }
+                            
+                            // 检查是否与当前fullText相同或者当前fullText是cleanedData的一部分
+                            if (fullText.trim() !== cleanedData.trim() && 
+                                !cleanedData.includes(fullText) && fullText.length < cleanedData.length) {
+                                
+                                // 防止重复 - 如果新内容包含全部旧内容，则替换而不是追加
+                                if (cleanedData.includes(fullText) && fullText.length > 0) {
+                                    logDebug("新内容包含旧内容，替换而非追加");
+                                    fullText = cleanedData;
+                                } else {
+                                    // 常规情况：添加新内容
+                                    fullText = cleanedData;
+                                }
+                                
+                                updateResponseWithMarkdown(fullText);
+                                logDebug("作为纯文本更新内容");
+                            } else {
+                                logDebug("内容已存在或无意义，避免重复添加");
+                            }
+                            
                             buffer = '';
                             return true;
                         }
                         
                         return false;
+                    }
+
+                    // Coze API响应完成
+                    statusDiv.textContent = `${selectedBotType} 回复完成`;
+                    
+                    // 如果到这里还没有内容，最后尝试解析整个收集到的数据
+                    if (!fullText && allChunks) {
+                        logDebug("尝试解析完整响应", allChunks);
+                        
+                        // 清理可能的重复内容或元数据
+                        let finalContent = allChunks;
+                        const msgTypeIndex = finalContent.indexOf('{"msg_type":"generate_answer_finish"');
+                        if (msgTypeIndex !== -1) {
+                            finalContent = finalContent.substring(0, msgTypeIndex).trim();
+                            logDebug("最终解析前移除了消息类型数据");
+                        }
+                        
+                        // 检查是否包含重复的完整回复
+                        const cleanedContent = removeRepeatedSections(finalContent);
+                        if (cleanedContent !== finalContent) {
+                            logDebug("检测到并移除了重复内容段落");
+                            finalContent = cleanedContent;
+                        }
+                        
+                        // 最后尝试提取
+                        extractContent(finalContent, true);
+                    }
+                    
+                    // 最后的验证：如果处理后仍然没有内容，则显示错误信息
+                    if (!fullText) {
+                        responseContainer.innerHTML = "无法解析API返回的内容。请查看调试信息，了解返回的原始数据。";
+                    } else {
+                        // 确保输出的文本没有重复内容
+                        const cleanedFinalContent = removeRepeatedSections(fullText);
+                        if (cleanedFinalContent !== fullText) {
+                            logDebug("最终输出前移除了重复内容");
+                            fullText = cleanedFinalContent;
+                            updateResponseWithMarkdown(fullText);
+                        }
+                    }
+                    
+                    // 辅助函数：移除文本中的重复部分
+                    function removeRepeatedSections(text) {
+                        if (!text || text.length < 20) return text;
+                        
+                        // 查找可能的分段位置
+                        const potentialBreakpoints = [
+                            '非暴力沟通（Nonviolent Communication, NVC）',
+                            '1. 观察 (Observation)',
+                            '观察模块:',
+                            '1. 理念传承者',
+                            '我是非暴力沟通',
+                            '基于马歇尔'
+                        ];
+                        
+                        let cleanedText = text;
+                        
+                        // 查找是否有完整的重复段落 (通常从特定标记开始)
+                        for (const breakpoint of potentialBreakpoints) {
+                            const firstOccurrence = text.indexOf(breakpoint);
+                            if (firstOccurrence > 10) { // 确保不是第一句话
+                                const secondOccurrence = text.indexOf(breakpoint, firstOccurrence + 10);
+                                if (secondOccurrence !== -1) {
+                                    // 找到重复的起始点，只保留到第一次出现为止
+                                    cleanedText = text.substring(0, secondOccurrence).trim();
+                                    logDebug(`在位置${secondOccurrence}检测到重复起点"${breakpoint}"，截断内容`);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // 检查是否还有其他结构性重复
+                        // 将文本分成段落进行比较
+                        const paragraphs = cleanedText.split('\n\n').filter(p => p.trim());
+                        if (paragraphs.length > 5) {
+                            // 检查段落级别的重复
+                            const uniqueParagraphs = [];
+                            const seenParagraphs = new Set();
+                            
+                            for (const paragraph of paragraphs) {
+                                // 简化段落以便比较（移除空格和标点）
+                                const simplifiedPara = paragraph.replace(/\s+/g, ' ').trim();
+                                if (simplifiedPara.length > 15 && !seenParagraphs.has(simplifiedPara)) {
+                                    seenParagraphs.add(simplifiedPara);
+                                    uniqueParagraphs.push(paragraph);
+                                }
+                            }
+                            
+                            if (uniqueParagraphs.length < paragraphs.length) {
+                                logDebug(`移除了${paragraphs.length - uniqueParagraphs.length}个重复段落`);
+                                cleanedText = uniqueParagraphs.join('\n\n');
+                            }
+                        }
+                        
+                        return cleanedText;
                     }
                     
                     // 解析SSE格式数据
@@ -1344,20 +1536,6 @@
                         }
                         
                         return events;
-                    }
-                    
-                    // Coze API响应完成
-                    statusDiv.textContent = `${selectedBotType} 回复完成`;
-                    
-                    // 如果到这里还没有内容，最后尝试解析整个收集到的数据
-                    if (!fullText && allChunks) {
-                        logDebug("尝试解析完整响应", allChunks);
-                        extractContent(allChunks, true);
-                    }
-                    
-                    // 最后的验证：如果处理后仍然没有内容，则显示错误信息
-                    if (!fullText) {
-                        responseContainer.innerHTML = "无法解析API返回的内容。请查看调试信息，了解返回的原始数据。";
                     }
                     
                 } catch (error) {
