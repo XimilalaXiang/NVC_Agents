@@ -329,9 +329,6 @@
                 <label class="method-option">
                     <input type="radio" name="method" value="direct" checked> 直接请求API
                 </label>
-                <label class="method-option">
-                    <input type="radio" name="method" value="corsanywhere"> 使用CORS代理
-                </label>
             </div>
             
             <label for="user-input">输入你的问题:</label>
@@ -1087,11 +1084,9 @@
 
                 // API URLs
                 const API_URL = "https://api.coze.cn/v3/chat";
-                // 使用不同的CORS代理，因为cors-anywhere可能有限制
-                const CORS_PROXY = "https://corsproxy.io/?";
                 
-                // 根据选择的方法决定URL
-                const requestUrl = selectedMethod === 'direct' ? API_URL : CORS_PROXY + encodeURIComponent(API_URL);
+                // 使用直接请求URL
+                const requestUrl = API_URL;
 
                 try {
                     // 准备要发送的数据
@@ -1551,8 +1546,7 @@
                             <p>发生跨域请求错误 (CORS)。这是由于浏览器的安全策略导致的。</p>
                             <p>解决方案:</p>
                             <ol>
-                                <li>尝试选择"使用CORS代理"选项</li>
-                                <li>或者使用浏览器插件临时禁用CORS (仅用于测试)</li>
+                                <li>使用浏览器插件临时禁用CORS (仅用于测试)</li>
                                 <li>或者部署自己的代理服务</li>
                             </ol>
                             <p><strong>技术详情:</strong> ${error.message}</p>
