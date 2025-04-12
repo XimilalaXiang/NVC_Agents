@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVC要素 - 非暴力沟通卡片系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面头部 -->
+    <header class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="fw-bold">非暴力沟通四要素</h1>
+                    <p class="lead text-muted">
+                        非暴力沟通(NVC)是一种有效的沟通模式，由马歇尔·卢森堡博士创立。它强调共情和诚实的表达，由四个核心要素组成。
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="d-flex justify-content-center">
+                        <div class="position-relative" style="width: 300px; height: 300px;">
+                            <!-- NVC四要素循环图 -->
+                            <svg width="300" height="300" viewBox="0 0 300 300">
+                                <!-- 外圆 -->
+                                <circle cx="150" cy="150" r="145" fill="none" stroke="#e0e0e0" stroke-width="2"></circle>
+                                
+                                <!-- 四个部分 -->
+                                <path d="M150,5 A145,145 0 0,1 295,150" fill="#e3f2fd" stroke="#4285f4" stroke-width="2"></path>
+                                <path d="M295,150 A145,145 0 0,1 150,295" fill="#e8f5e9" stroke="#34a853" stroke-width="2"></path>
+                                <path d="M150,295 A145,145 0 0,1 5,150" fill="#fff3e0" stroke="#ea4335" stroke-width="2"></path>
+                                <path d="M5,150 A145,145 0 0,1 150,5" fill="#fce4ec" stroke="#fbbc05" stroke-width="2"></path>
+                                
+                                <!-- 中心圆 -->
+                                <circle cx="150" cy="150" r="50" fill="white" stroke="#e0e0e0" stroke-width="2"></circle>
+                                <text x="150" y="155" text-anchor="middle" font-size="14" font-weight="bold">非暴力沟通</text>
+                                
+                                <!-- 四个要素文字 -->
+                                <text x="180" y="70" text-anchor="middle" font-size="16" font-weight="bold" fill="#4285f4">观察</text>
+                                <text x="230" y="160" text-anchor="middle" font-size="16" font-weight="bold" fill="#34a853">感受</text>
+                                <text x="180" y="240" text-anchor="middle" font-size="16" font-weight="bold" fill="#ea4335">需要</text>
+                                <text x="70" y="160" text-anchor="middle" font-size="16" font-weight="bold" fill="#fbbc05">请求</text>
+                                
+                                <!-- 图标 -->
+                                <text x="200" y="90" text-anchor="middle" font-family="FontAwesome" font-size="24" fill="#4285f4">&#xf06e;</text>
+                                <text x="210" y="180" text-anchor="middle" font-family="FontAwesome" font-size="24" fill="#34a853">&#xf004;</text>
+                                <text x="160" y="220" text-anchor="middle" font-family="FontAwesome" font-size="24" fill="#ea4335">&#xf06c;</text>
+                                <text x="90" y="180" text-anchor="middle" font-family="FontAwesome" font-size="24" fill="#fbbc05">&#xf4ad;</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col text-center">
+                <p class="lead">
+                    点击下面的卡片，了解每个要素的详细内容和使用方法。
+                </p>
+            </div>
+        </div>
+
+        <!-- 四要素卡片 -->
+        <div class="row g-4">
+            <!-- 观察卡片 -->
+            <div class="col-md-6">
+                <div class="card h-100 element-card cursor-pointer">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper me-3" style="background-color: rgba(66, 133, 244, 0.1);">
+                                <i class="fas fa-eye fa-2x text-primary"></i>
+                            </div>
+                            <h3 class="card-title mb-0">观察</h3>
+                        </div>
+                        <p class="card-text mb-3">
+                            客观地描述你所看到、听到或回忆的事实，不带评判、解释或推测。
+                        </p>
+                        <div class="element-details d-none">
+                            <hr>
+                            <h5>什么是观察？</h5>
+                            <p>
+                                观察是指客观地描述发生了什么，就像摄像机记录的画面一样。观察是对事实的陈述，而非对事实的评价或解释。
+                            </p>
+                            <h5>观察的原则</h5>
+                            <ul>
+                                <li>描述具体的行为和事件，而非泛泛的评价</li>
+                                <li>避免使用"总是"、"从不"等概括性词语</li>
+                                <li>区分观察与评价、解释或判断</li>
+                                <li>聚焦于当下或特定情境，而非过度概括</li>
+                            </ul>
+                            <h5>示例</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 观察</small>
+                                        <p class="mb-0 small">"昨天你迟到了30分钟。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 观察</small>
+                                        <p class="mb-0 small">"我看到桌子上有三个脏盘子。"</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 评判</small>
+                                        <p class="mb-0 small">"你总是迟到，太不靠谱了。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 评判</small>
+                                        <p class="mb-0 small">"你从不打扫，房间乱糟糟的。"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small><i class="fas fa-info-circle"></i> 点击卡片查看详情</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 感受卡片 -->
+            <div class="col-md-6">
+                <div class="card h-100 element-card cursor-pointer">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper me-3" style="background-color: rgba(52, 168, 83, 0.1);">
+                                <i class="fas fa-heart fa-2x text-success"></i>
+                            </div>
+                            <h3 class="card-title mb-0">感受</h3>
+                        </div>
+                        <p class="card-text mb-3">
+                            表达你的情感体验和情绪状态，而不是想法、评价或解释。
+                        </p>
+                        <div class="element-details d-none">
+                            <hr>
+                            <h5>什么是感受？</h5>
+                            <p>
+                                感受是指我们的情绪状态和身体感觉，它们是我们内在需要得到满足或未得到满足时的反应。感受与想法或评价不同，它们直接关联到我们的内在体验。
+                            </p>
+                            <h5>表达感受的原则</h5>
+                            <ul>
+                                <li>使用具体的情感词汇，而非模糊的表达</li>
+                                <li>区分感受和想法（"我感到失望"vs"我觉得你不重视我"）</li>
+                                <li>承担对自己情感的责任，而非归咎于他人</li>
+                                <li>认识到感受源自我们的需要，而非他人的行为</li>
+                            </ul>
+                            <h5>常见的感受词汇</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="fw-bold mb-1">需要得到满足时：</p>
+                                    <ul class="small">
+                                        <li>快乐、喜悦、满足</li>
+                                        <li>平静、安心、放松</li>
+                                        <li>感激、感动、温暖</li>
+                                        <li>兴奋、充满活力、振奋</li>
+                                        <li>充满希望、乐观、信任</li>
+                                    </ul>
+                                </div>
+                                <div class="col-6">
+                                    <p class="fw-bold mb-1">需要未得到满足时：</p>
+                                    <ul class="small">
+                                        <li>悲伤、失望、沮丧</li>
+                                        <li>焦虑、担忧、不安</li>
+                                        <li>愤怒、恼火、烦躁</li>
+                                        <li>疲惫、无力、困惑</li>
+                                        <li>孤独、怀念、思念</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h5>示例</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 感受</small>
+                                        <p class="mb-0 small">"我感到失望和沮丧。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 感受</small>
+                                        <p class="mb-0 small">"我现在很焦虑和担心。"</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 想法</small>
+                                        <p class="mb-0 small">"我觉得你不尊重我。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 想法</small>
+                                        <p class="mb-0 small">"我感觉被忽视了。"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small><i class="fas fa-info-circle"></i> 点击卡片查看详情</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 需要卡片 -->
+            <div class="col-md-6">
+                <div class="card h-100 element-card cursor-pointer">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper me-3" style="background-color: rgba(234, 67, 53, 0.1);">
+                                <i class="fas fa-seedling fa-2x text-danger"></i>
+                            </div>
+                            <h3 class="card-title mb-0">需要</h3>
+                        </div>
+                        <p class="card-text mb-3">
+                            识别并表达引发你情感的内在需要、价值和渴望。
+                        </p>
+                        <div class="element-details d-none">
+                            <hr>
+                            <h5>什么是需要？</h5>
+                            <p>
+                                需要是所有人共有的，对于生存和幸福至关重要的普遍价值和渴望。在非暴力沟通中，我们认为所有人的行为都是试图满足某种需要。需要与具体的行动策略不同，需要是普遍的，而策略是具体的。
+                            </p>
+                            <h5>表达需要的原则</h5>
+                            <ul>
+                                <li>区分需要（普遍的）和策略（特定的满足方式）</li>
+                                <li>表达需要时不涉及特定人物或行为</li>
+                                <li>承认所有人都有相同的基本需要</li>
+                                <li>理解我们的感受源于我们的需要是否得到满足</li>
+                            </ul>
+                            <h5>常见的人类基本需要</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <ul class="small">
+                                        <li>连接、理解、信任</li>
+                                        <li>安全、保障、稳定</li>
+                                        <li>尊重、认可、欣赏</li>
+                                        <li>自主、选择、自由</li>
+                                        <li>意义、目的、贡献</li>
+                                    </ul>
+                                </div>
+                                <div class="col-6">
+                                    <ul class="small">
+                                        <li>诚实、真实、透明</li>
+                                        <li>成长、学习、发展</li>
+                                        <li>支持、合作、互助</li>
+                                        <li>休息、放松、娱乐</li>
+                                        <li>和谐、秩序、美</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <h5>示例</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 需要</small>
+                                        <p class="mb-0 small">"我需要被理解和尊重。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 需要</small>
+                                        <p class="mb-0 small">"我渴望信任和安全感。"</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 策略</small>
+                                        <p class="mb-0 small">"我需要你给我发信息。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 策略</small>
+                                        <p class="mb-0 small">"我需要你改变态度。"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small><i class="fas fa-info-circle"></i> 点击卡片查看详情</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 请求卡片 -->
+            <div class="col-md-6">
+                <div class="card h-100 element-card cursor-pointer">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="icon-wrapper me-3" style="background-color: rgba(251, 188, 5, 0.1);">
+                                <i class="fas fa-comment fa-2x text-warning"></i>
+                            </div>
+                            <h3 class="card-title mb-0">请求</h3>
+                        </div>
+                        <p class="card-text mb-3">
+                            明确、具体地表达你希望对方做什么，而非不要做什么。
+                        </p>
+                        <div class="element-details d-none">
+                            <hr>
+                            <h5>什么是请求？</h5>
+                            <p>
+                                请求是我们为了满足需要而向他人提出的具体、积极、可行的行动期望。有效的请求清晰地表达我们希望对方做什么，而不是不要做什么。请求与要求不同，请求尊重对方说"不"的权利。
+                            </p>
+                            <h5>提出请求的原则</h5>
+                            <ul>
+                                <li>使用具体、明确、肯定的语言（说明你想要什么，而非你不想要什么）</li>
+                                <li>请求应当是当下可以实现的具体行动</li>
+                                <li>区分请求和要求（请求接受对方说"不"）</li>
+                                <li>检查对方是否正确理解了你的请求</li>
+                            </ul>
+                            <h5>请求的类型</h5>
+                            <ul class="small">
+                                <li><strong>行动请求：</strong>请求对方采取特定行动</li>
+                                <li><strong>连接请求：</strong>请求对方表达他们的感受、想法或反应</li>
+                                <li><strong>澄清请求：</strong>请求对方重复或解释他们所说的内容</li>
+                                <li><strong>诚实请求：</strong>请求对方分享他们的真实感受和想法</li>
+                            </ul>
+                            <h5>示例</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 请求</small>
+                                        <p class="mb-0 small">"你能告诉我你现在的感受吗？"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-success fw-bold">✓ 请求</small>
+                                        <p class="mb-0 small">"我想知道你对这个方案的看法。"</p>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 要求</small>
+                                        <p class="mb-0 small">"你必须现在回复我。"</p>
+                                    </div>
+                                    <div class="p-2 bg-light rounded mb-2">
+                                        <small class="text-danger fw-bold">✗ 模糊</small>
+                                        <p class="mb-0 small">"你能不能重视一点？"</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small><i class="fas fa-info-circle"></i> 点击卡片查看详情</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 练习引导 -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="bg-light p-4 rounded-3 text-center">
+                    <h3 class="mb-3">准备好实践了吗？</h3>
+                    <p class="mb-4">尝试运用这四个要素来表达自己，并获取个性化反馈。</p>
+                    <a href="./practice.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-pencil-alt me-2"></i>开始练习
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/main.js"></script>
+</body>
+</html> 

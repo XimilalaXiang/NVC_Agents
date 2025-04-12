@@ -1,0 +1,22 @@
+写一个Cloudflare中的workers脚本，主要功能是请求一个API，注意API是流式返回，下面是API的请求样例，注意处理跨域问题。
+
+curl --location --request POST 'https://api.coze.cn/v3/chat' \ 
+--header 'Authorization: Bearer pat_aRKDv53YJWQ5keoRqeOVVm4ws8Ny5eSuRKmThM3UzArd7JufiVtSeocCP0WAzWNS' \ 
+--header 'Content-Type: application/json' \ 
+--data-raw '{ 
+    "bot_id": "7483330179063087138", 
+    "user_id": "123456789", 
+    "stream": true, 
+    "auto_save_history":true, 
+    "additional_messages":[ 
+        { 
+            "role":"user", 
+            "content":"震惊", 
+            "content_type":"text" 
+        } 
+    ] 
+}' 
+
+同时创建html页面测试API调用，worker使用get方式请求，入参为data，入参在点击发送按钮后会替换到请求体的content中进行API请求
+
+将worker返回内容展示在页面上。一步一步来不要着急。

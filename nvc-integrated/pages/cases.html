@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案例卡片 - 非暴力沟通卡片系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <!-- 新增：动画效果CSS -->
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <!-- 新增：案例卡片页面专用样式 -->
+    <link rel="stylesheet" href="../assets/css/cases-styles.css">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- 新增：动画库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 新增：导航面包屑 -->
+    <div class="container mt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">首页</a></li>
+                <li class="breadcrumb-item active" aria-current="page">案例卡片</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- 重新设计：页面标题与介绍 -->
+    <div class="page-header bg-glow">
+        <div class="container">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-7">
+                    <h1 class="fw-bold display-5 fade-in-up">非暴力沟通案例卡片</h1>
+                    <p class="lead text-secondary fade-in-up fade-in-up-delay-1">
+                        探索真实情境中的沟通挑战，学习如何用非暴力沟通方式化解冲突，维护关系。
+                        每个案例卡片都提供传统表达与NVC表达的对比，帮助你理解和应用NVC的四个要素。
+                    </p>
+                    <div class="d-flex mt-4 fade-in-up fade-in-up-delay-2">
+                        <span class="badge bg-light text-primary border border-primary me-2 px-3 py-2 nvc-element-pulse">
+                            <i class="fas fa-eye me-1"></i> 观察
+                        </span>
+                        <span class="badge bg-light text-danger border border-danger me-2 px-3 py-2 nvc-element-pulse nvc-element-pulse-delay-1">
+                            <i class="fas fa-heart me-1"></i> 感受
+                        </span>
+                        <span class="badge bg-light text-success border border-success me-2 px-3 py-2 nvc-element-pulse nvc-element-pulse-delay-2">
+                            <i class="fas fa-seedling me-1"></i> 需要
+                        </span>
+                        <span class="badge bg-light text-warning border border-warning px-3 py-2 nvc-element-pulse nvc-element-pulse-delay-3">
+                            <i class="fas fa-hand-holding-heart me-1"></i> 请求
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="position-relative">
+                        <!-- 新增：情境插图 -->
+                        <svg viewBox="0 0 800 600" class="img-fluid header-illustration">
+                            <defs>
+                                <clipPath id="conversationClip">
+                                    <circle cx="400" cy="300" r="280"/>
+                                </clipPath>
+                            </defs>
+                            <!-- 背景元素 -->
+                            <circle cx="400" cy="300" r="290" fill="#f8f9fa" />
+                            
+                            <!-- 人物剪影 -->
+                            <g clip-path="url(#conversationClip)">
+                                <!-- 左侧人物 -->
+                                <path d="M250,220 C230,200 230,240 220,250 C200,270 200,320 220,350 C240,380 280,400 320,380 C350,365 360,330 350,300 C340,270 320,250 300,240 C280,230 270,240 250,220" fill="#5b8af7" opacity="0.8" />
+                                
+                                <!-- 右侧人物 -->
+                                <path d="M550,220 C570,200 570,240 580,250 C600,270 600,320 580,350 C560,380 520,400 480,380 C450,365 440,330 450,300 C460,270 480,250 500,240 C520,230 530,240 550,220" fill="#5ac088" opacity="0.8" />
+                                
+                                <!-- 对话泡泡 -->
+                                <circle cx="280" cy="210" r="40" fill="white" />
+                                <circle cx="520" cy="210" r="40" fill="white" />
+                                
+                                <!-- 连接线 -->
+                                <path d="M350,300 C380,320 420,320 450,300" stroke="#a895ef" stroke-width="4" fill="none" stroke-dasharray="10,5" />
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：指引卡片 -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="guide-card h-100 glow-hover gradient-border fade-in-up fade-in-up-delay-1">
+                    <div class="guide-icon pulse-glow">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <h5>按场景筛选</h5>
+                    <p>根据角色关系和沟通卡点找到适合你当前情境的案例</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="guide-card h-100 glow-hover gradient-border fade-in-up fade-in-up-delay-2">
+                    <div class="guide-icon pulse-glow">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h5>搜索关键词</h5>
+                    <p>输入你感兴趣的话题或场景，快速找到相关的沟通案例</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="guide-card h-100 glow-hover gradient-border fade-in-up fade-in-up-delay-3">
+                    <div class="guide-icon pulse-glow">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h5>收藏与练习</h5>
+                    <p>登录后可以收藏喜欢的案例，并进入练习模式实践NVC表达</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 改进：筛选器 -->
+    <div class="container mt-3">
+        <div class="filter-container shadow-sm bg-glow-secondary">
+            <div class="filter-header">
+                <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>案例筛选</h5>
+                <button class="btn btn-sm btn-outline-secondary btn-glow" id="clearFilters">
+                    <i class="fas fa-times me-1"></i>清除筛选
+                </button>
+            </div>
+            <div class="filter-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="filter-title">
+                            <i class="fas fa-user-friends me-2"></i>角色关系筛选
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="filter-chip active glow-hover" data-filter="all" data-filter-type="role">
+                                全部案例
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="authority" data-filter-type="role">
+                                <i class="fas fa-user-tie me-1"></i> 权威角色
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="equal" data-filter-type="role">
+                                <i class="fas fa-users me-1"></i> 平等角色
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="mixed" data-filter-type="role">
+                                <i class="fas fa-people-arrows me-1"></i> 混合角色
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="filter-title">
+                            <i class="fas fa-comment-dots me-2"></i>沟通卡点筛选
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="filter-chip active glow-hover" data-filter="all" data-filter-type="issue">
+                                全部卡点
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="emotion" data-filter-type="issue">
+                                <i class="fas fa-heart me-1"></i> 情绪管理
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="expression" data-filter-type="issue">
+                                <i class="fas fa-comment me-1"></i> 表达模式
+                            </button>
+                            <button class="filter-chip glow-hover" data-filter="conflict" data-filter-type="issue">
+                                <i class="fas fa-fire me-1"></i> 冲突处理
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="form-control search-input" id="searchInput" placeholder="搜索案例关键词...">
+                            <button class="btn btn-primary search-button btn-glow" id="searchButton">搜索</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 改进：案例卡片内容 -->
+    <section class="container mt-4 mb-5">
+        <!-- 新增：筛选结果统计 -->
+        <div class="filter-stats mb-3 fade-in-up">
+            <div class="filter-count">
+                <i class="fas fa-th-large me-2"></i><span id="caseCount">0</span> 个案例
+            </div>
+            <div class="active-filters" id="activeFilters">
+                <!-- 活跃筛选条件将由JS动态填充 -->
+            </div>
+        </div>
+
+        <!-- 新增：加载指示器 -->
+        <div class="text-center py-5 d-none" id="loadingIndicator">
+            <div class="spinner-border text-primary pulse-glow" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载案例...</p>
+        </div>
+
+        <!-- 没有结果提示 -->
+        <div class="col-12 text-center d-none" id="noResultsMessage">
+            <div class="no-results">
+                <div class="no-results-icon pulse-glow">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4>没有找到符合条件的案例</h4>
+                <p>请尝试调整筛选条件或搜索关键词</p>
+                <button class="btn btn-outline-primary mt-3 btn-glow" id="resetFiltersBtn">
+                    <i class="fas fa-redo me-1"></i>重置筛选条件
+                </button>
+            </div>
+        </div>
+        
+        <!-- 卡片容器 -->
+        <div class="row g-4" id="casesContainer">
+            <div class="col-12">
+                <div class="row cards-container">
+                    <!-- 案例卡片将通过JavaScript动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增：加载更多按钮 -->
+        <div class="text-center mt-4 d-none" id="loadMoreContainer">
+            <button class="btn btn-outline-primary px-4 py-2 btn-glow" id="loadMoreBtn">
+                <i class="fas fa-plus me-2"></i>加载更多案例
+            </button>
+        </div>
+    </section>
+
+    <!-- 案例详情模态框 -->
+    <!-- 模态框将通过JavaScript动态生成 -->
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="btn btn-primary rounded-circle shadow pulse-glow" title="返回顶部">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/cases-data.js"></script>
+    <script src="../assets/js/cases.js"></script>
+</body>
+</html>

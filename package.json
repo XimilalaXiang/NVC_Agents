@@ -1,0 +1,14 @@
+{
+  "name": "coze-api-proxy",
+  "version": "1.0.0",
+  "description": "Proxy service for Coze API to solve CORS issues",
+  "main": "proxy.js",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "NVC Team",
+  "license": "MIT"
+} 

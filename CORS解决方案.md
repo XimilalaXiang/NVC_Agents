@@ -15,12 +15,12 @@ Access to fetch at 'https://api.coze.cn/v3/chat' from origin 'https://your-site.
 
 #### 公共CORS代理
 
-在我们的应用中，已经内置了CORS Anywhere代理选项：
+你可以使用公共CORS代理服务来解决跨域问题：
 
 ```javascript
 const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
 const API_URL = "https://api.coze.cn/v3/chat";
-const requestUrl = selectedMethod === 'direct' ? API_URL : CORS_PROXY + API_URL;
+const requestUrl = CORS_PROXY + API_URL;
 ```
 
 注意事项：
@@ -36,11 +36,11 @@ const requestUrl = selectedMethod === 'direct' ? API_URL : CORS_PROXY + API_URL;
 4. 上传本项目中的 `proxy.js` 文件作为函数代码
 5. 配置触发器为 HTTP 触发
 6. 部署后，将获得一个API网关地址
-7. 修改 `index.html` 中的代理URL为你自己的云函数地址
+7. 修改 `index.html` 中的API URL为你的云函数地址
 
 ```javascript
 // 修改这一行
-const CORS_PROXY = "https://your-cloud-function-url.com/";
+const API_URL = "https://your-cloud-function-url.com/api/coze";
 ```
 
 ### 2. 使用浏览器插件临时禁用CORS

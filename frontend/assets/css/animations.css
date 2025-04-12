@@ -1,0 +1,393 @@
+/**
+ * animations.css - 非暴力沟通卡片系统
+ * 光影渐变动画效果集合
+ */
+
+/* 全局动画变量 */
+:root {
+    --primary-glow: linear-gradient(90deg, rgba(66, 133, 244, 0.2) 0%, rgba(66, 133, 244, 0) 50%, rgba(66, 133, 244, 0.2) 100%);
+    --secondary-glow: linear-gradient(90deg, rgba(52, 168, 83, 0.15) 0%, rgba(52, 168, 83, 0) 50%, rgba(52, 168, 83, 0.15) 100%);
+    --accent-glow: linear-gradient(90deg, rgba(234, 67, 53, 0.15) 0%, rgba(234, 67, 53, 0) 50%, rgba(234, 67, 53, 0.15) 100%);
+    --neutral-glow: linear-gradient(90deg, rgba(250, 250, 250, 0.5) 0%, rgba(250, 250, 250, 0.1) 50%, rgba(250, 250, 250, 0.5) 100%);
+}
+
+/* 背景光影动画 */
+.bg-glow {
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 300%;
+    height: 100%;
+    background: var(--primary-glow);
+    animation: bgGlowAnimation 8s ease-in-out infinite;
+    z-index: 0;
+}
+
+.bg-glow-secondary::before {
+    background: var(--secondary-glow);
+    animation-delay: 1s;
+}
+
+.bg-glow-accent::before {
+    background: var(--accent-glow);
+    animation-delay: 2s;
+}
+
+.bg-glow-neutral::before {
+    background: var(--neutral-glow);
+}
+
+.bg-glow > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes bgGlowAnimation {
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 0%;
+    }
+    100% {
+        left: -100%;
+    }
+}
+
+/* 元素光晕效果 */
+.glow-hover {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.glow-hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.glow-hover:hover::after {
+    box-shadow: 0 0 20px 3px rgba(66, 133, 244, 0.4);
+    opacity: 1;
+}
+
+.glow-hover-success::after {
+    box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4);
+}
+
+.glow-hover-success:hover::after {
+    box-shadow: 0 0 20px 3px rgba(52, 168, 83, 0.4);
+}
+
+.glow-hover-accent::after {
+    box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4);
+}
+
+.glow-hover-accent:hover::after {
+    box-shadow: 0 0 20px 3px rgba(234, 67, 53, 0.4);
+}
+
+/* 脉冲动画 */
+.pulse-glow {
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 10px 10px rgba(66, 133, 244, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+    }
+}
+
+/* 渐变边框 */
+.gradient-border {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.gradient-border::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    z-index: -1;
+    background: linear-gradient(45deg, 
+        rgba(66, 133, 244, 0.7), 
+        rgba(52, 168, 83, 0.7), 
+        rgba(234, 67, 53, 0.7), 
+        rgba(251, 188, 5, 0.7));
+    background-size: 400% 400%;
+    animation: gradientBorder 12s ease infinite;
+    border-radius: 12px;
+}
+
+.gradient-border::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    right: 1px;
+    bottom: 1px;
+    background: white;
+    border-radius: 9px;
+    z-index: -1;
+}
+
+/* 针对案例卡片的渐变边框特殊规则 */
+.case-card.gradient-border::before {
+    opacity: 0; /* 默认隐藏渐变效果 */
+    transition: opacity 0.3s ease;
+}
+
+.case-card.gradient-border:hover::before {
+    opacity: 1; /* 鼠标悬停时显示渐变效果 */
+}
+
+@keyframes gradientBorder {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* 文字渐变动画 */
+.text-gradient {
+    background: linear-gradient(45deg, 
+        #4285f4, 
+        #34a853, 
+        #ea4335, 
+        #fbbc05);
+    background-size: 300% 300%;
+    animation: textGradient 6s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+@keyframes textGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* 页面元素淡入效果 */
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+.fade-in-up-delay-1 {
+    animation-delay: 0.2s;
+}
+
+.fade-in-up-delay-2 {
+    animation-delay: 0.4s;
+}
+
+.fade-in-up-delay-3 {
+    animation-delay: 0.6s;
+}
+
+.fade-in-up-delay-4 {
+    animation-delay: 0.8s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 光影卡片效果 */
+.glow-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s ease;
+}
+
+.glow-card::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: -100%;
+    left: -100%;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.8) 0%,
+        rgba(255, 255, 255, 0) 70%
+    );
+    transition: all 0.5s ease;
+}
+
+.glow-card:hover::before {
+    top: -50%;
+    left: -50%;
+}
+
+/* 按钮光影效果 */
+.btn-glow {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0) 100%);
+    transform: translateX(-100%);
+    transition: transform 0s;
+}
+
+.btn-glow:hover::after {
+    transform: translateX(100%);
+    transition: transform 1s ease;
+}
+
+/* NVC四要素脉动效果 */
+.nvc-element-pulse {
+    animation: nvcElementPulse 3s infinite;
+    transform-origin: center;
+}
+
+.nvc-element-pulse-delay-1 {
+    animation-delay: 0.5s;
+}
+
+.nvc-element-pulse-delay-2 {
+    animation-delay: 1s;
+}
+
+.nvc-element-pulse-delay-3 {
+    animation-delay: 1.5s;
+}
+
+@keyframes nvcElementPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* 首页特殊背景效果 */
+.hero-background {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-background::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(66, 133, 244, 0.1) 0%,
+        rgba(255, 255, 255, 0) 70%
+    );
+    animation: heroBgRotate 20s infinite linear;
+}
+
+@keyframes heroBgRotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 练习页面提交按钮效果 */
+.submit-button-glow {
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.8) 0%,
+        rgba(255, 255, 255, 0) 80%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.submit-button-glow:hover::before {
+    opacity: 0.5;
+    animation: submitButtonPulse 2s infinite;
+}
+
+@keyframes submitButtonPulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+} 

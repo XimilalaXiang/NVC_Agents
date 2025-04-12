@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>非暴力沟通卡片系统 - 首页</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="./assets/css/styles.css">
+    <!-- 新增：动画效果CSS -->
+    <link rel="stylesheet" href="./assets/css/animations.css">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="./index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./pages/elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./pages/cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./pages/practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./pages/history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./pages/login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./pages/profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主banner区域 -->
+    <header class="hero-section py-5 bg-glow">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 fade-in-up">
+                    <h1 class="display-4 fw-bold mb-4">学习与实践<span class="text-gradient">非暴力沟通</span></h1>
+                    <p class="lead mb-4">通过卡片学习、案例分析和交互式练习，掌握马歇尔·卢森堡博士创立的非暴力沟通（NVC）方法，改善人际关系，提升沟通效果。</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="./pages/elements.html" class="btn btn-primary btn-lg btn-glow">
+                            <i class="fas fa-book-open me-2"></i>了解NVC要素
+                        </a>
+                        <a href="./pages/practice.html" class="btn btn-outline-primary btn-lg btn-glow">
+                            <i class="fas fa-graduation-cap me-2"></i>开始练习
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-5 mt-lg-0 fade-in-up fade-in-up-delay-1">
+                    <div class="hero-image text-center">
+                        <svg class="img-fluid pulse-glow" width="500" height="350" viewBox="0 0 500 350">
+                            <circle cx="250" cy="175" r="150" fill="#f8f9fa" stroke="#6c757d" stroke-width="2"/>
+                            <g transform="translate(250, 175)">
+                                <!-- 四个元素的圆圈 -->
+                                <circle cx="-80" cy="-50" r="40" fill="#e9f5ff" stroke="#0d6efd" stroke-width="2" class="element-circle observation"/>
+                                <circle cx="80" cy="-50" r="40" fill="#fff4e9" stroke="#fd7e14" stroke-width="2" class="element-circle feelings"/>
+                                <circle cx="-80" cy="50" r="40" fill="#e9fff0" stroke="#198754" stroke-width="2" class="element-circle needs"/>
+                                <circle cx="80" cy="50" r="40" fill="#ffe9e9" stroke="#dc3545" stroke-width="2" class="element-circle requests"/>
+                                
+                                <!-- 观察图标 -->
+                                <g transform="translate(-80, -50)">
+                                    <text text-anchor="middle" font-size="12" font-weight="bold" fill="#0d6efd">观察</text>
+                                    <g transform="translate(0, 15)">
+                                        <path d="M-12,0 C-8,8 8,8 12,0" fill="none" stroke="#0d6efd" stroke-width="2"/>
+                                        <circle cx="0" cy="-5" r="8" fill="none" stroke="#0d6efd" stroke-width="2"/>
+                                    </g>
+                                </g>
+                                
+                                <!-- 感受图标 -->
+                                <g transform="translate(80, -50)">
+                                    <text text-anchor="middle" font-size="12" font-weight="bold" fill="#fd7e14">感受</text>
+                                    <g transform="translate(0, 15)">
+                                        <path d="M0,-10 C-10,0 -5,10 0,5 C5,10 10,0 0,-10" fill="none" stroke="#fd7e14" stroke-width="2"/>
+                                    </g>
+                                </g>
+                                
+                                <!-- 需要图标 -->
+                                <g transform="translate(-80, 50)">
+                                    <text text-anchor="middle" font-size="12" font-weight="bold" fill="#198754">需要</text>
+                                    <g transform="translate(0, 15)">
+                                        <rect x="-10" y="-10" width="20" height="15" rx="2" ry="2" fill="none" stroke="#198754" stroke-width="2"/>
+                                        <line x1="-5" y1="10" x2="5" y2="10" stroke="#198754" stroke-width="2"/>
+                                        <line x1="0" y1="5" x2="0" y2="15" stroke="#198754" stroke-width="2"/>
+                                    </g>
+                                </g>
+                                
+                                <!-- 请求图标 -->
+                                <g transform="translate(80, 50)">
+                                    <text text-anchor="middle" font-size="12" font-weight="bold" fill="#dc3545">请求</text>
+                                    <g transform="translate(0, 15)">
+                                        <path d="M-10,0 L10,0 M0,-10 L0,10" stroke="#dc3545" stroke-width="2"/>
+                                        <circle cx="0" cy="0" r="12" fill="none" stroke="#dc3545" stroke-width="2"/>
+                                    </g>
+                                </g>
+                                
+                                <!-- 中心连接 -->
+                                <circle cx="0" cy="0" r="20" fill="#fff" stroke="#6c757d" stroke-width="2"/>
+                                <text text-anchor="middle" dominant-baseline="middle" font-size="14" font-weight="bold" fill="#6c757d">NVC</text>
+                                <line x1="-70" y1="-40" x2="-20" y2="-10" stroke="#6c757d" stroke-width="1"/>
+                                <line x1="70" y1="-40" x2="20" y2="-10" stroke="#6c757d" stroke-width="1"/>
+                                <line x1="-70" y1="40" x2="-20" y2="10" stroke="#6c757d" stroke-width="1"/>
+                                <line x1="70" y1="40" x2="20" y2="10" stroke="#6c757d" stroke-width="1"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 功能卡片区域 -->
+    <section class="features-section py-5 bg-light bg-glow-secondary">
+        <div class="container">
+            <h2 class="text-center mb-5 text-gradient">探索我们的功能</h2>
+            <div class="row g-4">
+                <!-- NVC要素卡片 -->
+                <div class="col-md-6 col-lg-3 fade-in-up">
+                    <div class="card h-100 shadow-sm glow-hover gradient-border">
+                        <div class="card-body p-4 text-center">
+                            <div class="feature-icon rounded-circle bg-primary bg-opacity-10 p-3 mx-auto mb-4 pulse-glow">
+                                <i class="fas fa-book text-primary fa-2x"></i>
+                            </div>
+                            <h3 class="card-title h5">NVC要素</h3>
+                            <p class="card-text">了解非暴力沟通的四个核心要素：观察、感受、需要和请求。</p>
+                            <a href="./pages/elements.html" class="btn btn-sm btn-outline-primary mt-3 btn-glow">查看详情</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 案例卡片 -->
+                <div class="col-md-6 col-lg-3 fade-in-up fade-in-up-delay-1">
+                    <div class="card h-100 shadow-sm glow-hover gradient-border">
+                        <div class="card-body p-4 text-center">
+                            <div class="feature-icon rounded-circle bg-warning bg-opacity-10 p-3 mx-auto mb-4 pulse-glow">
+                                <i class="fas fa-comments text-warning fa-2x"></i>
+                            </div>
+                            <h3 class="card-title h5">案例卡片</h3>
+                            <p class="card-text">浏览真实场景下的NVC应用案例，对比传统表达和NVC表达方式。</p>
+                            <a href="./pages/cases.html" class="btn btn-sm btn-outline-warning mt-3 btn-glow">浏览案例</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 练习功能 -->
+                <div class="col-md-6 col-lg-3 fade-in-up fade-in-up-delay-2">
+                    <div class="card h-100 shadow-sm glow-hover gradient-border">
+                        <div class="card-body p-4 text-center">
+                            <div class="feature-icon rounded-circle bg-success bg-opacity-10 p-3 mx-auto mb-4 pulse-glow">
+                                <i class="fas fa-graduation-cap text-success fa-2x"></i>
+                            </div>
+                            <h3 class="card-title h5">交互式练习</h3>
+                            <p class="card-text">根据提示编写自己的NVC表达，获得AI反馈和评分，不断改进。</p>
+                            <a href="./pages/practice.html" class="btn btn-sm btn-outline-success mt-3 btn-glow">开始练习</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 学习记录 -->
+                <div class="col-md-6 col-lg-3 fade-in-up fade-in-up-delay-3">
+                    <div class="card h-100 shadow-sm glow-hover gradient-border">
+                        <div class="card-body p-4 text-center">
+                            <div class="feature-icon rounded-circle bg-info bg-opacity-10 p-3 mx-auto mb-4 pulse-glow">
+                                <i class="fas fa-chart-line text-info fa-2x"></i>
+                            </div>
+                            <h3 class="card-title h5">学习记录</h3>
+                            <p class="card-text">追踪您的练习历史和进步，查看热力图和详细反馈。</p>
+                            <a href="./pages/history.html" class="btn btn-sm btn-outline-info mt-3 btn-glow">查看历史</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 介绍区域 -->
+    <section class="about-section py-5 bg-glow">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 fade-in-up">
+                    <h2 class="mb-4 text-gradient">什么是非暴力沟通？</h2>
+                    <p class="lead mb-3">非暴力沟通（Nonviolent Communication，简称NVC）是由马歇尔·卢森堡博士创立的一种沟通方法，帮助人们以富有同理心的方式表达自己和聆听他人。</p>
+                    <p class="mb-4">NVC强调诚实表达和共情聆听，通过四个要素：观察、感受、需要和请求，帮助我们创造更和谐的人际关系，减少冲突，增进理解。</p>
+                    <div class="d-flex align-items-center mb-3 glow-hover p-2">
+                        <i class="fas fa-check-circle text-success me-3 pulse-glow"></i>
+                        <p class="mb-0">改善人际关系和沟通效果</p>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 glow-hover p-2">
+                        <i class="fas fa-check-circle text-success me-3 pulse-glow"></i>
+                        <p class="mb-0">减少误解和冲突</p>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 glow-hover p-2">
+                        <i class="fas fa-check-circle text-success me-3 pulse-glow"></i>
+                        <p class="mb-0">提高同理心和自我表达能力</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-4 mt-lg-0 fade-in-up fade-in-up-delay-1">
+                    <div class="card shadow gradient-border">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">非暴力沟通的四个要素</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex align-items-center glow-hover">
+                                    <span class="badge rounded-pill bg-primary me-3 pulse-glow">1</span>
+                                    <div>
+                                        <h6 class="mb-1">观察</h6>
+                                        <p class="small mb-0">客观描述事实，不带评判</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center glow-hover">
+                                    <span class="badge rounded-pill bg-warning text-dark me-3 pulse-glow">2</span>
+                                    <div>
+                                        <h6 class="mb-1">感受</h6>
+                                        <p class="small mb-0">表达你的情绪和身体感受</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center glow-hover">
+                                    <span class="badge rounded-pill bg-success me-3 pulse-glow">3</span>
+                                    <div>
+                                        <h6 class="mb-1">需要</h6>
+                                        <p class="small mb-0">识别和表达你的内在需求</p>
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex align-items-center glow-hover">
+                                    <span class="badge rounded-pill bg-danger me-3 pulse-glow">4</span>
+                                    <div>
+                                        <h6 class="mb-1">请求</h6>
+                                        <p class="small mb-0">明确、具体、可行的行动请求</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 行动号召区 -->
+    <section class="cta-section py-5 bg-primary text-white bg-glow-primary">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 fade-in-up">
+                    <h2 class="mb-4">开始你的非暴力沟通之旅</h2>
+                    <p class="lead mb-4">注册免费账号，保存你的练习记录，追踪你的进步，成为更好的沟通者。</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="./pages/register.html" class="btn btn-light btn-lg px-4 pulse-glow">
+                            <i class="fas fa-user-plus me-2"></i>免费注册
+                        </a>
+                        <a href="./pages/elements.html" class="btn btn-outline-light btn-lg px-4 pulse-glow">
+                            <i class="fas fa-info-circle me-2"></i>了解更多
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="./assets/js/auth.js"></script>
+    <script src="./assets/js/main.js"></script>
+
+    <!-- 添加SVG动画 -->
+    <style>
+        .element-circle {
+            transform-origin: center;
+            animation: pulse 3s infinite ease-in-out;
+        }
+        .observation {
+            animation-delay: 0s;
+        }
+        .feelings {
+            animation-delay: 0.75s;
+        }
+        .needs {
+            animation-delay: 1.5s;
+        }
+        .requests {
+            animation-delay: 2.25s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</body>
+</html> 

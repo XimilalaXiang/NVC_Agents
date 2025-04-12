@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVC练习 - 非暴力沟通卡片系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 页面头部 -->
+    <header class="bg-light py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="fw-bold">非暴力沟通练习</h1>
+                    <p class="lead text-muted">
+                        在下方表单中练习非暴力沟通的四个要素，获取AI反馈以提升你的沟通技巧。
+                    </p>
+                </div>
+                <div class="col-lg-4 d-flex justify-content-center">
+                    <div class="icon-wrapper" style="width: 100px; height: 100px; background-color: rgba(66, 133, 244, 0.1);">
+                        <i class="fas fa-pencil-alt fa-3x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容 -->
+    <main class="container my-5">
+        <div class="row">
+            <!-- NVC要素提示区域 -->
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>NVC要素指南</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6><i class="fas fa-eye text-primary me-2"></i>观察</h6>
+                            <p class="small text-muted">客观描述你看到、听到或记得的事实，不要掺杂评判或解释。例如："当我看到你迟到20分钟..."</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="fas fa-heart text-danger me-2"></i>感受</h6>
+                            <p class="small text-muted">表达你的情感体验和感觉，而非思想或看法。例如："我感到失望和担忧..."</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="fas fa-seedling text-success me-2"></i>需要</h6>
+                            <p class="small text-muted">表明你内在的价值、期望和需求。例如："因为我需要可靠和计划性..."</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6><i class="fas fa-hands-helping text-warning me-2"></i>请求</h6>
+                            <p class="small text-muted">提出具体、可行、肯定的请求。例如："你能否在下次可能迟到时提前通知我？"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 练习输入表单 -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-pencil-alt me-2"></i>练习表单</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="practiceForm" class="practice-form">
+                            <div class="mb-3">
+                                <label for="observationInput" class="form-label"><i class="fas fa-eye text-primary me-2"></i>我的观察</label>
+                                <textarea class="form-control" id="observationInput" rows="3" placeholder="请描述你客观观察到的事实，不包含评判..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feelingInput" class="form-label"><i class="fas fa-heart text-danger me-2"></i>我的感受</label>
+                                <textarea class="form-control" id="feelingInput" rows="3" placeholder="请表达你的感受，例如：开心、悲伤、失望、惊讶..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="needInput" class="form-label"><i class="fas fa-seedling text-success me-2"></i>我的需要</label>
+                                <textarea class="form-control" id="needInput" rows="3" placeholder="请表达你的需要或价值观，例如：尊重、理解、合作..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="requestInput" class="form-label"><i class="fas fa-hands-helping text-warning me-2"></i>我的请求</label>
+                                <textarea class="form-control" id="requestInput" rows="3" placeholder="请提出具体、可行的请求..."></textarea>
+                            </div>
+                            <!-- 表单提交按钮 -->
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary" id="submitButton">
+                                    <span id="submitSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                                    <span>提交分析</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 分析结果区域（默认隐藏） -->
+                <div id="resultsContainer" class="card shadow-sm d-none">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>分析结果</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- 总分区域 -->
+                        <div class="text-center mb-4" id="scoreCharts">
+                            <h4>总体评分</h4>
+                            <div class="score-display d-inline-block position-relative">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" stroke-width="12"></circle>
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#4CAF50" stroke-width="12" 
+                                        stroke-dasharray="339.292" stroke-dashoffset="0" id="totalScoreCircle"></circle>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle">
+                                    <h3 class="mb-0" id="totalScoreDisplay">0</h3>
+                                    <small class="text-muted">分</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 各要素评分 -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <h6><i class="fas fa-eye text-primary me-1"></i>观察</h6>
+                                <div class="score-display score-display-sm d-inline-block position-relative">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#42A5F5" stroke-width="8" 
+                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="observationScoreCircle"></circle>
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <h5 class="mb-0" id="observationScoreDisplay">0</h5>
+                                        <small class="text-muted">分</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <h6><i class="fas fa-heart text-danger me-1"></i>感受</h6>
+                                <div class="score-display score-display-sm d-inline-block position-relative">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#F44336" stroke-width="8" 
+                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="feelingScoreCircle"></circle>
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <h5 class="mb-0" id="feelingScoreDisplay">0</h5>
+                                        <small class="text-muted">分</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <h6><i class="fas fa-seedling text-success me-1"></i>需要</h6>
+                                <div class="score-display score-display-sm d-inline-block position-relative">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#4CAF50" stroke-width="8" 
+                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="needScoreCircle"></circle>
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <h5 class="mb-0" id="needScoreDisplay">0</h5>
+                                        <small class="text-muted">分</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 text-center mb-3">
+                                <h6><i class="fas fa-hands-helping text-warning me-1"></i>请求</h6>
+                                <div class="score-display score-display-sm d-inline-block position-relative">
+                                    <svg width="80" height="80" viewBox="0 0 80 80">
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
+                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#FFC107" stroke-width="8" 
+                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="requestScoreCircle"></circle>
+                                    </svg>
+                                    <div class="position-absolute top-50 start-50 translate-middle">
+                                        <h5 class="mb-0" id="requestScoreDisplay">0</h5>
+                                        <small class="text-muted">分</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 反馈内容 -->
+                        <div id="feedbackDetails">
+                            <h4 class="mb-3">详细反馈</h4>
+                            
+                            <div class="card mb-3 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>观察部分反馈</h6>
+                                </div>
+                                <div class="card-body" id="observationFeedback">
+                                    <p class="feedback-placeholder">分析中...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-3 border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0"><i class="fas fa-heart me-2"></i>感受部分反馈</h6>
+                                </div>
+                                <div class="card-body" id="feelingFeedback">
+                                    <p class="feedback-placeholder">分析中...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-3 border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-seedling me-2"></i>需要部分反馈</h6>
+                                </div>
+                                <div class="card-body" id="needFeedback">
+                                    <p class="feedback-placeholder">分析中...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-3 border-warning">
+                                <div class="card-header bg-warning text-white">
+                                    <h6 class="mb-0"><i class="fas fa-hands-helping me-2"></i>请求部分反馈</h6>
+                                </div>
+                                <div class="card-body" id="requestFeedback">
+                                    <p class="feedback-placeholder">分析中...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card mb-3 border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-comment-dots me-2"></i>整体建议</h6>
+                                </div>
+                                <div class="card-body" id="overallFeedback">
+                                    <p class="feedback-placeholder">分析中...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 按钮区域 -->
+                        <div class="text-center mt-4" id="resultActions">
+                            <button class="btn btn-outline-primary me-2" id="newPracticeBtn">
+                                <i class="fas fa-pencil-alt me-2"></i>新的练习
+                            </button>
+                            <button class="btn btn-success" id="savePracticeBtn">
+                                <i class="fas fa-save me-2"></i>保存练习记录
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/coze-api.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/practice.js"></script>
+</body>
+</html> 

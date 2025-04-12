@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>非暴力沟通 AI 助手</title>
+    <!-- 导入卡片系统的样式 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- 引入Marked.js库用于解析Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
     <!-- 引入代码高亮库 -->
@@ -14,15 +19,14 @@
         body {
             font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
                 Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
             background-color: #f5f5f7;
             color: #1d1d1f;
             line-height: 1.5;
         }
 
-        .container {
+        .ai-container {
+            max-width: 800px;
+            margin: 30px auto;
             background-color: white;
             border-radius: 14px;
             padding: 24px;
@@ -313,7 +317,51 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <!-- 当前页面激活 -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./ai-assistant.html">AI助手</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="ai-container">
         <h1>非暴力沟通 AI 助手</h1>
         
         <div class="bot-select">
@@ -325,6 +373,12 @@
         </div>
         
         <div class="input-section">
+            <div class="method-select">
+                <label class="method-option">
+                    <input type="radio" name="method" value="direct" checked> 直接请求API
+                </label>
+            </div>
+            
             <label for="user-input">输入你的问题:</label>
             <textarea id="user-input" placeholder="例如: 请介绍一下非暴力沟通的四个要素"></textarea>
             <div style="margin-top: 16px; text-align: center;">
@@ -345,6 +399,11 @@
         </div>
     </div>
 
+    <!-- 卡片系统的JS文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/auth.js"></script>
+
+    <!-- AI助手的JS代码 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const userInput = document.getElementById('user-input');
@@ -1543,6 +1602,29 @@
             
             // 初始化时触发一次选择事件，更新提示信息
             botSelect.dispatchEvent(new Event('change'));
+        });
+    </script>
+    
+    <!-- 添加导航链接激活状态检查脚本 -->
+    <script>
+        // 为当前页面的导航链接添加active类
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取当前页面路径
+            const currentPath = window.location.pathname;
+            
+            // 获取所有导航链接
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            
+            // 遍历导航链接，为当前页面对应的链接添加active类
+            navLinks.forEach(link => {
+                if (link.getAttribute('href').includes(currentPath.split('/').pop())) {
+                    link.classList.add('active');
+                } else if (currentPath.endsWith('/') && link.getAttribute('href').includes('index.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>

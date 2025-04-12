@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 非暴力沟通卡片系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 自定义CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <!-- 新增：动画效果CSS -->
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link active" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 导航面包屑 -->
+    <div class="container mt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">首页</a></li>
+                <li class="breadcrumb-item active" aria-current="page">注册</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- 注册区域 -->
+    <section class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm gradient-border fade-in-up">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">创建账号</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="registerForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="registerUsername" class="form-label">用户名</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="registerUsername" name="username" placeholder="请输入用户名" required autofocus>
+                                    </div>
+                                    <div class="form-text">用户名将在系统中显示，请慎重选择。</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="registerEmail" class="form-label">电子邮箱</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input type="email" class="form-control" id="registerEmail" name="email" placeholder="请输入电子邮箱" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="registerPassword" class="form-label">密码</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="registerPassword" name="password" placeholder="请设置密码" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="form-text">密码至少包含8个字符。</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirmPassword" class="form-label">确认密码</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    我已阅读并同意<a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">用户协议</a>和<a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">隐私政策</a>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg btn-glow">
+                                    <i class="fas fa-user-plus me-2"></i>创建账号
+                                </button>
+                            </div>
+                            
+                            <div class="alert alert-danger mt-3 d-none" id="registerError">
+                                注册失败，请确保所有信息填写正确并再次尝试。
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="text-center">
+                            <p class="mb-0">已有账号？ <a href="./login.html" class="text-primary">立即登录</a></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 注册说明 -->
+                <div class="mt-4 fade-in-up fade-in-up-delay-1">
+                    <div class="card bg-light border-0">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle text-primary me-3 fa-2x"></i>
+                                <p class="mb-0">在当前版本中，所有用户数据都存储在浏览器本地，确保在同一浏览器中操作以保留您的练习记录。我们后续将推出云端存储功能，敬请期待。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 用户协议模态框 -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">用户协议</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. 总则</h6>
+                    <p>欢迎使用非暴力沟通卡片系统（以下简称"本系统"）。本协议是用户与本系统之间关于使用本系统服务所订立的协议。</p>
+                    
+                    <h6>2. 服务内容</h6>
+                    <p>本系统提供非暴力沟通学习相关功能，包括但不限于NVC要素学习、案例卡片浏览、交互式练习等。</p>
+                    
+                    <h6>3. 用户行为规范</h6>
+                    <p>用户在使用本系统时，应遵守中华人民共和国相关法律法规，不得利用本系统从事违法违规活动。</p>
+                    
+                    <h6>4. 知识产权</h6>
+                    <p>本系统的所有权和运营权归本系统所有。本系统提供的服务内容（包括但不限于文字、图片、视频等）的知识产权归本系统所有。</p>
+                    
+                    <h6>5. 免责声明</h6>
+                    <p>用户理解并同意，在使用本系统时，可能会遇到不可抗力等因素导致的服务中断或其他问题，本系统不对此承担责任。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 隐私政策模态框 -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">隐私政策</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. 信息收集</h6>
+                    <p>本系统会收集用户注册时提供的信息，以及用户在使用过程中产生的学习记录等数据。</p>
+                    
+                    <h6>2. 信息使用</h6>
+                    <p>收集的信息将用于提供、维护和改进本系统的服务，以及根据用户的使用情况提供个性化的服务体验。</p>
+                    
+                    <h6>3. 信息存储</h6>
+                    <p>在当前版本中，用户数据仅存储在用户浏览器的本地存储中，不会上传至服务器。</p>
+                    
+                    <h6>4. 信息安全</h6>
+                    <p>本系统采取合理的技术措施保护用户的信息安全，但由于技术限制和可能存在的风险，无法保证信息的绝对安全。</p>
+                    
+                    <h6>5. 隐私政策的更新</h6>
+                    <p>本系统保留随时更新本隐私政策的权利，更新后的隐私政策将在本系统上公布。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© 2025 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 自定义JS -->
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/register.js"></script>
+</body>
+</html> 
