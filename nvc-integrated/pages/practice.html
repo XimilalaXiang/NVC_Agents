@@ -146,6 +146,60 @@
             white-space: pre-wrap;
             display: none;
         }
+        
+        /* 案例情境样式 */
+        .border-left-primary {
+            border-left: 4px solid #4285F4 !important;
+        }
+        
+        #caseContextContainer .alert {
+            background-color: #f8f9fa;
+            border: 1px solid rgba(66, 133, 244, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #caseContextContainer .alert:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left-width: 6px;
+        }
+        
+        #caseTitleText {
+            color: #4285F4;
+            font-weight: 600;
+        }
+        
+        #caseContextText {
+            color: #333;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+        
+        /* 案例情境样式 */
+        .border-left-primary {
+            border-left: 4px solid #4285F4 !important;
+        }
+        
+        #caseContextContainer .alert {
+            background-color: #f8f9fa;
+            border: 1px solid rgba(66, 133, 244, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        #caseContextContainer .alert:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left-width: 6px;
+        }
+        
+        #caseTitleText {
+            color: #4285F4;
+            font-weight: 600;
+        }
+        
+        #caseContextText {
+            color: #333;
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
     </style>
 </head>
 <body>
@@ -248,6 +302,40 @@
                         <h5 class="mb-0"><i class="fas fa-pencil-alt me-2"></i>练习表单</h5>
                     </div>
                     <div class="card-body">
+                        <!-- 案例情境区域（默认隐藏） -->
+                        <div id="caseContextSection" class="mb-4 p-3 bg-light rounded border" style="display:none;">
+                            <h6 class="mb-2"><i class="fas fa-quote-left text-primary me-2"></i>案例情境</h6>
+                            <p id="caseContextText" class="mb-0"></p>
+                        </div>
+                        
+                        <!-- 案例参考区域，默认隐藏，只有从案例页面跳转来才会显示 -->
+                        <div id="caseReferenceSection" class="mb-4 p-3 bg-light rounded border" style="display:none;">
+                            <h6 class="mb-3"><i class="fas fa-lightbulb text-warning me-2"></i>案例参考</h6>
+                            <div class="case-nvc-reference small">
+                                <div class="mb-2" id="observationReference">
+                                    <strong><i class="fas fa-eye text-primary me-1"></i>观察参考:</strong>
+                                    <p class="mb-1 ms-4" id="observationReferenceText"></p>
+                                </div>
+                                <div class="mb-2" id="feelingReference">
+                                    <strong><i class="fas fa-heart text-danger me-1"></i>感受参考:</strong>
+                                    <p class="mb-1 ms-4" id="feelingReferenceText"></p>
+                                </div>
+                                <div class="mb-2" id="needReference">
+                                    <strong><i class="fas fa-seedling text-success me-1"></i>需要参考:</strong>
+                                    <p class="mb-1 ms-4" id="needReferenceText"></p>
+                                </div>
+                                <div class="mb-2" id="requestReference">
+                                    <strong><i class="fas fa-hands-helping text-warning me-1"></i>请求参考:</strong>
+                                    <p class="mb-1 ms-4" id="requestReferenceText"></p>
+                                </div>
+                                <div class="text-end mt-2">
+                                    <button class="btn btn-sm btn-outline-secondary" id="hideReferenceBtn">
+                                        <i class="fas fa-eye-slash me-1"></i>隐藏参考
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <form id="practiceForm" class="practice-form">
                             <div class="mb-3">
                                 <label for="observationInput" class="form-label"><i class="fas fa-eye text-primary me-2"></i>我的观察</label>
@@ -292,12 +380,12 @@
                                 <p class="nvc-sentence"></p>
                             </div>
                         </div>
-                        
+
                         <!-- 状态提示 -->
                         <div id="statusDiv" class="text-center mb-4">
                             <span class="loading"></span>正在等待非暴力沟通教练回复...
-                        </div>
-                        
+                            </div>
+                            
                         <!-- AI回复内容区域 -->
                         <div id="responseContainer" class="markdown-content border rounded p-3 mb-4">
                             <!-- AI回复内容将在这里显示 -->
@@ -344,9 +432,187 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 案例数据 -->
+    <script src="../assets/js/cases-data.js"></script>
     <!-- 自定义JS -->
     <script src="../assets/js/auth.js"></script>
     <script>
+        // 检查是否有来自案例卡片的数据
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查是否有来自案例页面的参考数据
+            const practiceNvcData = sessionStorage.getItem('practiceNvcData');
+            
+            // 新增：检查是否有案例ID
+            const practiceCase = sessionStorage.getItem('practiceCase');
+            if (practiceCase) {
+                console.log('检测到来自案例页面的案例ID:', practiceCase);
+                
+                // 确保casesData是可用的
+                if (typeof window.casesData === 'undefined') {
+                    // 动态加载cases-data.js
+                    const script = document.createElement('script');
+                    script.src = '../assets/js/cases-data.js';
+                    script.onload = function() {
+                        processCaseData(practiceCase);
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    processCaseData(practiceCase);
+                }
+                
+                // 清除会话存储中的案例ID，避免刷新页面时重复显示
+                sessionStorage.removeItem('practiceCase');
+            }
+            
+            // 函数：处理案例数据
+            function processCaseData(caseId) {
+                // 查找案例数据
+                let caseItem = null;
+                
+                if (typeof window.casesData !== 'undefined') {
+                    caseItem = window.casesData.find(item => item.id === caseId);
+                }
+                
+                if (!caseItem) {
+                    console.error('未找到案例数据:', caseId);
+                    return;
+                }
+                
+                console.log('找到案例数据:', caseItem);
+                
+                // 显示情境描述区域
+                const contextSection = document.getElementById('caseContextSection');
+                const contextText = document.getElementById('caseContextText');
+                
+                if (contextSection && contextText && caseItem.context) {
+                    // 设置情境内容
+                    contextText.textContent = caseItem.context;
+                    
+                    // 显示情境区域
+                    contextSection.style.display = 'block';
+                }
+                
+                // 如果有NVC元素，也处理一下
+                const nvcElements = caseItem.nvcElements || {};
+                const caseData = {
+                    title: caseItem.title,
+                    nvcElements: nvcElements
+                };
+                
+                // 将数据存储在会话存储中，以便在页面加载时处理
+                sessionStorage.setItem('practiceNvcData', JSON.stringify(caseData));
+                
+                // 无需重新加载页面，直接调用处理函数
+                processPracticeNvcData(caseData);
+            }
+            
+            function processPracticeNvcData(caseData) {
+                try {
+                    console.log('处理NVC参考数据:', caseData);
+                    
+                    // 获取参考区域元素
+                    const referenceSection = document.getElementById('caseReferenceSection');
+                    
+                    // 填充参考内容
+                    const nvcElements = caseData.nvcElements || {};
+                    
+                    // 获取各个参考文本元素
+                    const observationText = document.getElementById('observationReferenceText');
+                    const feelingText = document.getElementById('feelingReferenceText');
+                    const needText = document.getElementById('needReferenceText');
+                    const requestText = document.getElementById('requestReferenceText');
+                    
+                    // 填充内容
+                    if (nvcElements.observation) {
+                        observationText.textContent = nvcElements.observation;
+                        document.getElementById('observationReference').style.display = 'block';
+                    } else {
+                        document.getElementById('observationReference').style.display = 'none';
+                    }
+                    
+                    if (nvcElements.feeling) {
+                        feelingText.textContent = nvcElements.feeling;
+                        document.getElementById('feelingReference').style.display = 'block';
+                    } else {
+                        document.getElementById('feelingReference').style.display = 'none';
+                    }
+                    
+                    if (nvcElements.need) {
+                        needText.textContent = nvcElements.need;
+                        document.getElementById('needReference').style.display = 'block';
+                    } else {
+                        document.getElementById('needReference').style.display = 'none';
+                    }
+                    
+                    if (nvcElements.request) {
+                        requestText.textContent = nvcElements.request;
+                        document.getElementById('requestReference').style.display = 'block';
+                    } else {
+                        document.getElementById('requestReference').style.display = 'none';
+                    }
+                    
+                    // 检查是否有任何NVC元素
+                    const hasNvcElements = nvcElements.observation || nvcElements.feeling || nvcElements.need || nvcElements.request;
+                    
+                    // 设置参考区域默认为隐藏
+                    referenceSection.style.display = 'none';
+                    
+                    // 只有当有NVC元素时才创建显示按钮
+                    if (hasNvcElements) {
+                        // 如果有标题，创建并显示在表单上方
+                        if (caseData.title) {
+                            const titleElement = document.createElement('div');
+                            titleElement.className = 'alert alert-info mb-3';
+                            titleElement.innerHTML = `<i class="fas fa-info-circle me-2"></i>您正在参考案例: <strong>${caseData.title}</strong>`;
+                            referenceSection.prepend(titleElement);
+                        }
+                        
+                        // 创建并添加显示按钮
+                        const showBtn = document.createElement('button');
+                        showBtn.className = 'btn btn-sm btn-outline-info mb-3';
+                        showBtn.innerHTML = '<i class="fas fa-eye me-1"></i>显示案例参考';
+                        showBtn.addEventListener('click', function() {
+                            referenceSection.style.display = 'block';
+                            this.remove(); // 点击后移除显示按钮
+                        });
+                        referenceSection.parentNode.insertBefore(showBtn, referenceSection);
+                    }
+                    
+                    // 隐藏参考按钮点击事件
+                    document.getElementById('hideReferenceBtn').addEventListener('click', function() {
+                        referenceSection.style.display = 'none';
+                        // 添加显示按钮
+                        const showBtn = document.createElement('button');
+                        showBtn.className = 'btn btn-sm btn-outline-info mb-3';
+                        showBtn.innerHTML = '<i class="fas fa-eye me-1"></i>显示案例参考';
+                        showBtn.addEventListener('click', function() {
+                            referenceSection.style.display = 'block';
+                            this.remove();
+                        });
+                        referenceSection.parentNode.insertBefore(showBtn, referenceSection);
+                    });
+                } catch (error) {
+                    console.error('处理NVC参考数据时出错:', error);
+                }
+            }
+            
+            if (practiceNvcData) {
+                try {
+                    // 解析数据
+                    const caseData = JSON.parse(practiceNvcData);
+                    console.log('检测到来自案例页面的数据:', caseData);
+                    
+                    // 处理数据
+                    processPracticeNvcData(caseData);
+                    
+                    // 清除会话存储中的数据，避免刷新页面时重复显示
+                    sessionStorage.removeItem('practiceNvcData');
+                } catch (error) {
+                    console.error('解析案例数据时出错:', error);
+                }
+            }
+        });
+
         // 当点击前往AI助手按钮时，保存表单数据
         document.getElementById('aiAssistantButton').addEventListener('click', function(event) {
             // 获取表单输入

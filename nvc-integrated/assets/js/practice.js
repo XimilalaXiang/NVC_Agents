@@ -871,7 +871,7 @@ async function handleSubmit(event) {
         logDebug('表单字段未找到', {observation: !!observationInput, feeling: !!feelingInput, need: !!needInput, request: !!requestInput});
         return;
     }
-
+    
     // 获取表单数据
     const practiceData = {
         observation: observationInput.value.trim(),
@@ -879,7 +879,7 @@ async function handleSubmit(event) {
         need: needInput.value.trim(),
         request: requestInput.value.trim()
     };
-
+    
     // 验证表单数据（至少有一个字段不为空）
     if (!practiceData.observation && !practiceData.feeling && 
         !practiceData.need && !practiceData.request) {
@@ -887,7 +887,7 @@ async function handleSubmit(event) {
         logDebug('表单验证失败：所有字段都为空');
         return;
     }
-
+    
     console.log('表单数据:', practiceData);
     logDebug('表单数据已收集', practiceData);
 
@@ -1072,7 +1072,7 @@ async function handleSubmit(event) {
         appendActionButtons(responseContainer);
         logDebug('已添加操作按钮');
         
-    } catch (error) {
+            } catch (error) {
         console.error('分析NVC练习时发生错误:', error);
         logDebug('API调用或处理过程中出错', {error: error.message, stack: error.stack});
         statusDiv.innerHTML = `
