@@ -34,6 +34,11 @@ function updateAuthUI() {
     const userProfileItem = document.getElementById('userProfileItem');
     const usernameDisplay = document.getElementById('usernameDisplay');
     
+    // 获取当前页面路径
+    const currentPath = window.location.pathname;
+    const isLoginPage = currentPath.includes('login.html');
+    const isRegisterPage = currentPath.includes('register.html');
+    
     if (isLoggedIn()) {
         // 用户已登录
         if (loginRegisterItem) loginRegisterItem.classList.add('d-none');
@@ -48,6 +53,23 @@ function updateAuthUI() {
         // 显示需要登录才能访问的功能
         const authRequiredElements = document.querySelectorAll('.auth-required');
         authRequiredElements.forEach(el => el.classList.remove('d-none'));
+        
+        // 如果当前在登录或注册页面，且不是登录过程中，则重定向到首页
+        if ((isLoginPage || isRegisterPage) && !sessionStorage.getItem('loginSuccessful')) {
+            console.log('Auth.js: 用户已登录，从登录/注册页面重定向到首页');
+            
+            // 获取重定向URL
+            const redirectUrl = '../index.html';
+            
+            // 只有在页面完全加载后才执行重定向，避免与登录过程中的重定向冲突
+            if (document.readyState === 'complete') {
+                window.location.href = redirectUrl;
+            } else {
+                window.addEventListener('load', function() {
+                    window.location.href = redirectUrl;
+                });
+            }
+        }
     } else {
         // 用户未登录
         if (loginRegisterItem) loginRegisterItem.classList.remove('d-none');
@@ -56,6 +78,11 @@ function updateAuthUI() {
         // 隐藏需要登录才能访问的功能
         const authRequiredElements = document.querySelectorAll('.auth-required');
         authRequiredElements.forEach(el => el.classList.add('d-none'));
+    }
+    
+    // 清除登录成功标记，避免影响其他页面
+    if (!isLoginPage && !isRegisterPage) {
+        sessionStorage.removeItem('loginSuccessful');
     }
 }
 

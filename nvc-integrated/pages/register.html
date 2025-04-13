@@ -38,9 +38,6 @@
                         <a class="nav-link" href="./practice.html">练习</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./history.html">练习历史</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="./ai-assistant.html">AI助手</a>
                     </li>
                     <li class="nav-item" id="loginRegisterItem">
@@ -246,6 +243,31 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- 自定义JS -->
     <script src="../assets/js/auth.js"></script>
+    <script>
+        // 处理callback参数，保存到会话存储中，供注册成功后使用
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const callback = urlParams.get('callback');
+            
+            if (callback) {
+                console.log('Register页面: 检测到回调URL:', callback);
+                sessionStorage.setItem('loginCallback', callback);
+            }
+        });
+        
+        // 跳转到登录页面，并传递回调参数
+        function navigateToLogin() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const callback = urlParams.get('callback') || sessionStorage.getItem('loginCallback');
+            let loginUrl = './login.html';
+            
+            if (callback) {
+                loginUrl += '?callback=' + encodeURIComponent(callback);
+            }
+            
+            window.location.href = loginUrl;
+        }
+    </script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/register.js"></script>
 </body>

@@ -227,9 +227,6 @@
                         <a class="nav-link active" href="./practice.html">练习</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./history.html">练习历史</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="./ai-assistant.html">AI助手</a>
                     </li>
                     <li class="nav-item" id="loginRegisterItem">
@@ -439,6 +436,13 @@
     <script>
         // 检查是否有来自案例卡片的数据
         document.addEventListener('DOMContentLoaded', function() {
+            // 函数：跳转到登录页面，带上当前页面作为回调
+            window.navigateToLogin = function() {
+                const currentPath = window.location.pathname;
+                const loginUrl = './login.html?callback=' + encodeURIComponent(currentPath);
+                window.location.href = loginUrl;
+            };
+            
             // 检查是否有来自案例页面的参考数据
             const practiceNvcData = sessionStorage.getItem('practiceNvcData');
             

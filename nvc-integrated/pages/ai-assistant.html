@@ -341,9 +341,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="./practice.html">练习</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./history.html">练习历史</a>
-                    </li>
                     <!-- 当前页面激活 -->
                     <li class="nav-item">
                         <a class="nav-link active" href="./ai-assistant.html">AI助手</a>
@@ -1682,6 +1679,16 @@
                 }
             });
         });
+    </script>
+
+    <!-- 自定义JS -->
+    <script>
+        // 跳转到登录页面，带上当前页面作为回调
+        window.navigateToLogin = function() {
+            const currentPath = window.location.pathname;
+            const loginUrl = './login.html?callback=' + encodeURIComponent(currentPath);
+            window.location.href = loginUrl;
+        };
     </script>
 </body>
 </html>

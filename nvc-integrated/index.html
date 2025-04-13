@@ -38,9 +38,6 @@
                         <a class="nav-link" href="./pages/practice.html">练习</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./pages/history.html">练习历史</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="./pages/ai-assistant.html">AI助手</a>
                     </li>
                     <li class="nav-item" id="loginRegisterItem">
@@ -301,9 +298,188 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- 自定义JS -->
-    <script src="./assets/js/auth.js"></script>
-    <script src="./assets/js/main.js"></script>
+    <!-- 自定义JS，动态加载以处理加载失败情况 -->
+    <script>
+        // 设置年份
+        document.querySelectorAll('footer p').forEach(el => {
+            el.innerHTML = el.innerHTML.replace('2025', new Date().getFullYear());
+        });
+        
+        // 全局变量，记录资源加载状态
+        window.resourcesLoaded = {
+            authJs: false,
+            mainJs: false,
+            animationsCss: false
+        };
+        
+        // 检查localStorage是否可用
+        function isLocalStorageAvailable() {
+            try {
+                const test = 'test';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch(e) {
+                return false;
+            }
+        }
+        
+        // 检查用户是否已登录
+        function isLoggedIn() {
+            return isLocalStorageAvailable() && localStorage.getItem('nvcUser') ? true : false;
+        }
+        
+        // 获取当前用户
+        function getCurrentUser() {
+            if (!isLocalStorageAvailable()) return null;
+            const userJson = localStorage.getItem('nvcUser');
+            return userJson ? JSON.parse(userJson) : null;
+        }
+        
+        // 更新UI状态
+        function updateAuthUI() {
+            const loginRegisterItem = document.getElementById('loginRegisterItem');
+            const userProfileItem = document.getElementById('userProfileItem');
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            
+            if (isLoggedIn()) {
+                // 用户已登录
+                if (loginRegisterItem) loginRegisterItem.classList.add('d-none');
+                if (userProfileItem) {
+                    userProfileItem.classList.remove('d-none');
+                    const user = getCurrentUser();
+                    if (usernameDisplay && user) {
+                        usernameDisplay.textContent = user.username;
+                    }
+                }
+            } else {
+                // 用户未登录
+                if (loginRegisterItem) loginRegisterItem.classList.remove('d-none');
+                if (userProfileItem) userProfileItem.classList.add('d-none');
+            }
+        }
+        
+        // 跳转到登录页面的安全版本
+        window.navigateToLogin = function() {
+            // 如果相对路径不工作，尝试使用绝对路径
+            try {
+                let loginUrl = './pages/login.html';
+                window.location.href = loginUrl;
+            } catch (e) {
+                console.error('导航错误:', e);
+                // 尝试替代路径
+                window.location.href = window.location.origin + '/pages/login.html';
+            }
+        };
+        
+        // 尝试加载外部资源
+        function loadExternalResources() {
+            // 尝试加载animations.css
+            const animationsCss = document.createElement('link');
+            animationsCss.rel = 'stylesheet';
+            animationsCss.href = './assets/css/animations.css';
+            animationsCss.onload = function() {
+                console.log('animations.css 加载成功');
+                window.resourcesLoaded.animationsCss = true;
+                checkResourcesStatus();
+            };
+            animationsCss.onerror = function() {
+                console.warn('animations.css 加载失败');
+                // 尝试使用绝对路径
+                const absoluteAnimationsCss = document.createElement('link');
+                absoluteAnimationsCss.rel = 'stylesheet';
+                absoluteAnimationsCss.href = window.location.origin + '/assets/css/animations.css';
+                absoluteAnimationsCss.onload = function() {
+                    console.log('animations.css（绝对路径）加载成功');
+                    window.resourcesLoaded.animationsCss = true;
+                    checkResourcesStatus();
+                };
+                absoluteAnimationsCss.onerror = function() {
+                    console.warn('animations.css（绝对路径）加载失败');
+                    checkResourcesStatus();
+                };
+                document.head.appendChild(absoluteAnimationsCss);
+            };
+            document.head.appendChild(animationsCss);
+            
+            // 尝试加载auth.js
+            const authJs = document.createElement('script');
+            authJs.src = './assets/js/auth.js';
+            authJs.onload = function() {
+                console.log('auth.js 加载成功');
+                window.resourcesLoaded.authJs = true;
+                checkResourcesStatus();
+                // 如果加载成功，调用updateAuthUI确保用户状态正确显示
+                if (typeof window.updateAuthUI === 'function') {
+                    window.updateAuthUI();
+                }
+            };
+            authJs.onerror = function() {
+                console.warn('auth.js 加载失败');
+                // 尝试使用绝对路径
+                const absoluteAuthJs = document.createElement('script');
+                absoluteAuthJs.src = window.location.origin + '/assets/js/auth.js';
+                absoluteAuthJs.onload = function() {
+                    console.log('auth.js（绝对路径）加载成功');
+                    window.resourcesLoaded.authJs = true;
+                    checkResourcesStatus();
+                    if (typeof window.updateAuthUI === 'function') {
+                        window.updateAuthUI();
+                    }
+                };
+                absoluteAuthJs.onerror = function() {
+                    console.warn('auth.js（绝对路径）加载失败');
+                    checkResourcesStatus();
+                };
+                document.body.appendChild(absoluteAuthJs);
+            };
+            document.body.appendChild(authJs);
+            
+            // 尝试加载main.js
+            const mainJs = document.createElement('script');
+            mainJs.src = './assets/js/main.js';
+            mainJs.onload = function() {
+                console.log('main.js 加载成功');
+                window.resourcesLoaded.mainJs = true;
+                checkResourcesStatus();
+            };
+            mainJs.onerror = function() {
+                console.warn('main.js 加载失败');
+                // 尝试使用绝对路径
+                const absoluteMainJs = document.createElement('script');
+                absoluteMainJs.src = window.location.origin + '/assets/js/main.js';
+                absoluteMainJs.onload = function() {
+                    console.log('main.js（绝对路径）加载成功');
+                    window.resourcesLoaded.mainJs = true;
+                    checkResourcesStatus();
+                };
+                absoluteMainJs.onerror = function() {
+                    console.warn('main.js（绝对路径）加载失败');
+                    checkResourcesStatus();
+                };
+                document.body.appendChild(absoluteMainJs);
+            };
+            document.body.appendChild(mainJs);
+        }
+        
+        // 检查资源加载状态
+        function checkResourcesStatus() {
+            const allLoaded = Object.values(window.resourcesLoaded).every(status => status);
+            
+            if (allLoaded) {
+                console.log('所有资源加载成功');
+            } else {
+                console.warn('部分资源加载失败，使用备用功能');
+            }
+        }
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('首页已加载');
+            updateAuthUI();
+            loadExternalResources();
+        });
+    </script>
 
     <!-- 添加SVG动画 -->
     <style>

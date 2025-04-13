@@ -62,7 +62,33 @@ function setupLoginForm() {
             loginUser(username, password)
                 .then(user => {
                     console.log('Login.js: 登录成功', user);
-                    // 登录成功，重定向到首页
+                    
+                    // 标记登录成功，阻止其他重定向
+                    sessionStorage.setItem('loginSuccessful', 'true');
+                    
+                    // 从URL或会话存储中获取回调URL
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let callback = urlParams.get('callback');
+                    
+                    // 如果URL中没有回调参数，则尝试从会话存储中获取
+                    if (!callback) {
+                        callback = sessionStorage.getItem('loginCallback');
+                        sessionStorage.removeItem('loginCallback'); // 用完即删
+                    }
+                    
+                    // 如果找到有效的回调URL，则跳转到回调URL
+                    if (callback) {
+                        console.log('Login.js: 跳转到回调URL:', callback);
+                        
+                        // 确保回调URL是相对路径或同域名
+                        if (callback.startsWith('/') || callback.startsWith('../') || 
+                            callback.startsWith('./') || callback.includes(window.location.hostname)) {
+                            window.location.href = callback;
+                            return;
+                        }
+                    }
+                    
+                    // 没有回调URL或回调URL无效，跳转到首页
                     window.location.href = '../index.html';
                 })
                 .catch(error => {
