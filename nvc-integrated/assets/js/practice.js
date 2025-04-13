@@ -9,7 +9,64 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化API调用函数
     initApiFunction();
+    
+    // 初始化调试功能
+    initDebugFeatures();
 });
+
+/**
+ * 初始化调试功能
+ */
+function initDebugFeatures() {
+    const debugToggle = document.getElementById('debug-toggle');
+    const debugSection = document.getElementById('debug-section');
+    
+    if (debugToggle && debugSection) {
+        debugToggle.addEventListener('click', function() {
+            if (debugSection.style.display === 'none' || debugSection.style.display === '') {
+                debugSection.style.display = 'block';
+                debugToggle.textContent = '隐藏调试信息';
+            } else {
+                debugSection.style.display = 'none';
+                debugToggle.textContent = '显示调试信息';
+            }
+        });
+    }
+}
+
+/**
+ * 向调试日志添加一条消息
+ * @param {string} message - 消息内容
+ * @param {any} data - 可选的数据
+ */
+function logDebug(message, data) {
+    const debugLog = document.getElementById('debug-log');
+    if (!debugLog) return;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    let logEntry = document.createElement('div');
+    
+    if (typeof data === 'undefined') {
+        logEntry.textContent = `[${timestamp}] ${message}`;
+    } else {
+        logEntry.textContent = `[${timestamp}] ${message}: ${typeof data === 'object' ? JSON.stringify(data) : data}`;
+    }
+    
+    debugLog.appendChild(logEntry);
+    debugLog.scrollTop = debugLog.scrollHeight;
+}
+
+/**
+ * 显示原始响应数据
+ * @param {string} data - 要显示的数据
+ */
+function showRawData(data) {
+    const rawDataDiv = document.getElementById('raw-data');
+    if (!rawDataDiv) return;
+    
+    rawDataDiv.textContent = data;
+    rawDataDiv.style.display = 'block';
+}
 
 /**
  * 初始化练习页面
@@ -31,14 +88,14 @@ function initPracticePage() {
     
     // 安全地获取DOM元素
     const practiceForm = document.getElementById('practiceForm');
-    const resultsContainer = document.getElementById('resultsContainer');
+    const aiResponseContainer = document.getElementById('aiResponseContainer');
     const newPracticeBtn = document.getElementById('newPracticeBtn');
     const savePracticeBtn = document.getElementById('savePracticeBtn');
     
     // 记录元素获取状态
     console.log('DOM元素获取状态:', {
         表单: !!practiceForm,
-        结果容器: !!resultsContainer,
+        结果容器: !!aiResponseContainer,
         新练习按钮: !!newPracticeBtn,
         保存按钮: !!savePracticeBtn
     });
@@ -104,14 +161,14 @@ function initPracticePage() {
     }
     
     // 安全地添加新练习按钮事件
-    if (newPracticeBtn && practiceForm && resultsContainer) {
+    if (newPracticeBtn && practiceForm && aiResponseContainer) {
         try {
             newPracticeBtn.addEventListener('click', function() {
                 // 重置表单
                 practiceForm.reset();
                 
                 // 隐藏结果，显示表单
-                resultsContainer.classList.add('d-none');
+                aiResponseContainer.classList.add('d-none');
                 const formCard = practiceForm.closest('.card');
                 if (formCard) {
                     formCard.classList.remove('d-none');
@@ -793,232 +850,340 @@ function generatePrompt(practiceData) {
 }
 
 /**
- * 处理表单提交
- * @param {Event} event - 事件对象
+ * 处理表单提交事件
+ * @param {Event} event - 提交事件对象
  */
-function handleSubmit(event) {
+async function handleSubmit(event) {
     event.preventDefault();
-    
-    // 设置为真实API模式
-    try {
-        localStorage.setItem('useSimulatedData', 'false');
-        console.log('已设置为使用真实API模式');
-    } catch (error) {
-        console.error('设置API模式时出错:', error);
-    }
-    
-    // 检查所有DOM元素是否存在
+    console.log('提交NVC练习表单');
+    logDebug('NVC练习表单提交开始');
+
+    // 获取表单输入
     const observationInput = document.getElementById('observationInput');
     const feelingInput = document.getElementById('feelingInput');
     const needInput = document.getElementById('needInput');
     const requestInput = document.getElementById('requestInput');
-    const resultsContainer = document.getElementById('resultsContainer');
-    
-    // 验证所有必要元素是否存在
-    if (!observationInput || !feelingInput || !needInput || !requestInput || !resultsContainer) {
-        console.error('必要的DOM元素不存在', {
-            观察输入: !!observationInput,
-            感受输入: !!feelingInput,
-            需要输入: !!needInput,
-            请求输入: !!requestInput,
-            结果容器: !!resultsContainer
-        });
+
+    // 验证必要的输入字段是否存在
+    if (!observationInput || !feelingInput || !needInput || !requestInput) {
+        console.error('表单输入字段未找到');
         alert('页面元素加载不完整，请刷新页面后重试');
+        logDebug('表单字段未找到', {observation: !!observationInput, feeling: !!feelingInput, need: !!needInput, request: !!requestInput});
         return;
     }
-    
-    // 先尝试禁用提交按钮，如果不成功也要继续
-    try {
-        toggleSubmitState(true);
-    } catch (error) {
-        console.error('切换按钮状态时出错:', error);
-        // 继续执行，不阻止表单提交
-    }
-    
-    // 获取练习数据
+
+    // 获取表单数据
     const practiceData = {
         observation: observationInput.value.trim(),
         feeling: feelingInput.value.trim(),
         need: needInput.value.trim(),
         request: requestInput.value.trim()
     };
-    
-    // 检查至少有一个字段不为空
-    if (!practiceData.observation && !practiceData.feeling && !practiceData.need && !practiceData.request) {
-        try {
-            showToast('请至少填写一项NVC要素内容', 'danger');
-        } catch (error) {
-            console.error('显示提示消息时出错:', error);
-            alert('请至少填写一项NVC要素内容');
-        }
-        
-        try {
-            toggleSubmitState(false);
-        } catch (error) {
-            console.error('恢复按钮状态时出错:', error);
-        }
+
+    // 验证表单数据（至少有一个字段不为空）
+    if (!practiceData.observation && !practiceData.feeling && 
+        !practiceData.need && !practiceData.request) {
+        alert('请至少填写一项NVC元素');
+        logDebug('表单验证失败：所有字段都为空');
         return;
     }
-    
-    // 显示结果容器（先让用户看到容器）
-    resultsContainer.classList.remove('d-none');
-    
-    // 安全地显示加载动画
-    try {
-        showLoadingState(resultsContainer);
-    } catch (error) {
-        console.error('显示加载状态时出错:', error);
-        // 继续执行，不阻止表单提交
+
+    console.log('表单数据:', practiceData);
+    logDebug('表单数据已收集', practiceData);
+
+    // 获取或创建AI响应容器
+    let aiResponseContainer = document.getElementById('aiResponseContainer');
+    if (!aiResponseContainer) {
+        console.log('创建AI响应容器');
+        aiResponseContainer = document.createElement('div');
+        aiResponseContainer.id = 'aiResponseContainer';
+        aiResponseContainer.className = 'card mt-4 shadow-sm';
+        document.querySelector('.container').appendChild(aiResponseContainer);
+        logDebug('已创建新的AI响应容器');
+    } else {
+        logDebug('使用现有的AI响应容器');
     }
-    
-    // 安全地显示练习内容摘要
-    try {
-        showPracticeSummary(practiceData);
-    } catch (error) {
-        console.error('显示摘要时出错:', error);
-        // 继续执行，不阻止表单提交
+
+    // 设置AI响应容器的内容
+    aiResponseContainer.innerHTML = `
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">非暴力沟通教练反馈</h5>
+        </div>
+        <div class="card-body">
+            <div id="nvcSummaryContent" class="mb-3">
+                <h6>您的NVC表达:</h6>
+                <p class="nvc-expression"></p>
+            </div>
+            <div id="statusDiv" class="alert alert-info">
+                <i class="fas fa-spinner fa-spin"></i> 正在分析您的NVC表达...
+            </div>
+            <div id="responseContainer" class="markdown-body" style="display:none;"></div>
+        </div>
+    `;
+
+    // 更新NVC表达式摘要
+    updateNvcSummary(practiceData);
+
+    // 获取状态和响应容器
+    const statusDiv = document.getElementById('statusDiv');
+    const responseContainer = document.getElementById('responseContainer');
+
+    // 显示AI响应容器并隐藏表单卡片
+    const formCard = document.querySelector('.card:not(#aiResponseContainer)');
+    if (formCard) {
+        formCard.style.display = 'none';
     }
-    
-    // 滚动到结果区域
+    aiResponseContainer.style.display = 'block';
+    logDebug('表单已隐藏，响应容器已显示');
+
     try {
-        resultsContainer.scrollIntoView({ behavior: 'smooth' });
-    } catch (error) {
-        console.error('滚动到结果区域时出错:', error);
-        // 继续执行，不阻止表单提交
-    }
-    
-    // 生成提示词（将4个要素组合成一个句子）
-    const prompt = generatePrompt(practiceData);
-    
-    // 使用一个全局变量来存储间隔ID，便于在函数的任何地方清除它
-    let progressIntervalId = null;
-    
-    try {
-        // 显示详细的API调用进度
-        let progressCounter = 0;
-        const loadingMessages = [
-            '正在连接Coze API服务...',
-            '发送NVC表达到AI分析...',
-            'AI正在分析您的NVC表达...',
-            '正在接收API响应...',
-            '正在处理响应结果...'
-        ];
+        // 检查是否有window.analyzeNvcPractice函数
+        if (typeof window.analyzeNvcPractice !== 'function') {
+            console.error('analyzeNvcPractice函数未找到');
+            logDebug('API函数不存在', {analyzeNvcPractice: typeof window.analyzeNvcPractice});
+            throw new Error('API调用函数未找到，请刷新页面后重试');
+        }
+
+        console.log('调用API分析NVC练习');
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在分析您的NVC表达...';
+        logDebug('开始调用API函数');
+
+        // 调用API并获取结果
+        const result = await window.analyzeNvcPractice(practiceData);
+        console.log('API返回结果:', result);
+        logDebug('API调用完成', {resultType: typeof result, isObject: result !== null && typeof result === 'object'});
         
-        // 使用定时器模拟进度更新（更快的间隔，因为实际API调用可能很快）
-        progressIntervalId = setInterval(() => {
-            if (progressCounter < loadingMessages.length) {
-                try {
-                    updateLoadingMessage(loadingMessages[progressCounter]);
-                } catch (error) {
-                    console.error('更新加载消息时出错:', error);
+        // 显示原始响应用于调试
+        if (document.getElementById('debug-section')) {
+            showRawData(typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
+            logDebug('原始响应数据已记录到调试区域');
+        }
+
+        // 处理API返回的结果
+        statusDiv.style.display = 'none';
+        responseContainer.style.display = 'block';
+        
+        if (result && result.isRawText) {
+            // 如果是原始文本响应，使用Markdown渲染
+            logDebug('处理原始文本响应');
+            
+            // 清理并渲染Markdown内容
+            const cleanedText = typeof cleanKnowledgeBaseOutput === 'function' 
+                ? cleanKnowledgeBaseOutput(result.rawResponse) 
+                : result.rawResponse;
+            
+            // 使用marked.js渲染Markdown (确保页面已引入marked库)
+            if (typeof marked !== 'undefined') {
+                responseContainer.innerHTML = marked.parse(cleanedText);
+                logDebug('使用marked渲染Markdown内容');
+            } else {
+                // 如果marked不可用，使用简单的文本替换实现基本格式
+                const formattedText = cleanedText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>');
+                responseContainer.innerHTML = formattedText;
+                logDebug('使用基本格式化显示内容（marked库不可用）');
+            }
+        } else if (typeof result === 'string') {
+            // 直接显示字符串响应
+            logDebug('处理字符串响应');
+            
+            // 使用marked.js渲染Markdown (如果可用)
+            if (typeof marked !== 'undefined') {
+                responseContainer.innerHTML = marked.parse(result);
+                logDebug('使用marked渲染字符串响应');
+            } else {
+                // 基本格式化
+                const formattedText = result
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>');
+                responseContainer.innerHTML = formattedText;
+                logDebug('使用基本格式化显示字符串响应');
+            }
+        } else if (result && typeof result === 'object') {
+            // 处理结构化响应
+            logDebug('处理结构化响应对象');
+            
+            // 尝试展示结构化数据
+            if (result.scores && result.feedback) {
+                // 标准的评分和反馈格式
+                logDebug('使用标准的评分和反馈格式');
+                let feedbackHtml = `
+                    <h4>分析得分: ${result.total_score || 'N/A'}/100</h4>
+                    <div class="feedback-section">
+                        <h5>观察 (${result.scores.observation || 'N/A'}/100)</h5>
+                        <p>${result.feedback.observation || '无反馈'}</p>
+                    </div>
+                    <div class="feedback-section">
+                        <h5>感受 (${result.scores.feeling || 'N/A'}/100)</h5>
+                        <p>${result.feedback.feeling || '无反馈'}</p>
+                    </div>
+                    <div class="feedback-section">
+                        <h5>需要 (${result.scores.need || 'N/A'}/100)</h5>
+                        <p>${result.feedback.need || '无反馈'}</p>
+                    </div>
+                    <div class="feedback-section">
+                        <h5>请求 (${result.scores.request || 'N/A'}/100)</h5>
+                        <p>${result.feedback.request || '无反馈'}</p>
+                    </div>
+                    <div class="feedback-section overall">
+                        <h5>整体反馈</h5>
+                        <p>${result.overall_feedback || '无整体反馈'}</p>
+                    </div>
+                `;
+                responseContainer.innerHTML = feedbackHtml;
+            } else if (result.content || result.message || result.text) {
+                // 处理简单的文本响应格式
+                logDebug('处理简单文本响应格式');
+                const content = result.content || result.message || result.text || JSON.stringify(result);
+                
+                if (typeof marked !== 'undefined') {
+                    responseContainer.innerHTML = marked.parse(content);
+                } else {
+                    responseContainer.innerHTML = `<p>${content}</p>`;
                 }
-                progressCounter++;
+            } else {
+                // 未知结构，显示JSON
+                logDebug('未知响应结构，显示JSON');
+                responseContainer.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
             }
-        }, 1000); // 每1秒更新一次消息，适应实际API调用速度
+        } else {
+            // 未知响应类型
+            logDebug('未知响应类型', {resultType: typeof result});
+            responseContainer.innerHTML = `<div class="alert alert-warning">
+                <p>收到未知格式的响应。</p>
+                <pre>${JSON.stringify(result, null, 2) || '无响应数据'}</pre>
+            </div>`;
+        }
+        
+        // 保存当前反馈数据以供后续使用
+        window.currentFeedback = {
+            isRawText: !!(result && result.isRawText),
+            rawResponse: result && result.isRawText ? result.rawResponse : 
+                         (typeof result === 'string' ? result : JSON.stringify(result))
+        };
+        logDebug('已保存当前反馈数据以供后续使用');
+        
+        // 添加操作按钮
+        appendActionButtons(responseContainer);
+        logDebug('已添加操作按钮');
+        
     } catch (error) {
-        console.error('设置进度更新时出错:', error);
-        // 继续执行，不阻止表单提交
+        console.error('分析NVC练习时发生错误:', error);
+        logDebug('API调用或处理过程中出错', {error: error.message, stack: error.stack});
+        statusDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <strong>错误:</strong> ${error.message}
+                <p>请稍后再试或联系管理员。</p>
+                <p class="text-muted mt-2">错误详情: ${error.stack || '无详细信息'}</p>
+            </div>
+        `;
     }
-    
-    // 调用API分析
-    console.log("调用API进行NVC分析，提示词:", prompt);
-    
-    // 添加随机参数避免缓存
-    const timestamp = new Date().getTime();
-    const randomParam = Math.floor(Math.random() * 10000);
-    const finalPrompt = `${prompt}?_t=${timestamp}&_r=${randomParam}`;
-    
-    // 调用API获取分析结果
-    window.analyzeNvcPractice(finalPrompt)
-        .then(response => {
-            // 清除进度间隔
-            if (progressIntervalId) {
-                clearInterval(progressIntervalId);
-            }
-            
-            // 隐藏加载动画
-            try {
-                hideLoadingState();
-            } catch (error) {
-                console.error('隐藏加载动画时出错:', error);
-            }
-            
-            console.log("API响应:", response);
-            // 显示分析结果
-            try {
-                displayResults(practiceData, response);
-            } catch (error) {
-                console.error('显示结果时出错:', error);
-                alert('显示结果时出错: ' + error.message);
-            }
-            
-            // 保存练习历史
-            try {
-                savePracticeHistory(practiceData, response);
-            } catch (error) {
-                console.error('保存练习历史时出错:', error);
-            }
-        })
-        .catch(error => {
-            // 清除进度间隔
-            if (progressIntervalId) {
-                clearInterval(progressIntervalId);
-            }
-            
-            // 隐藏加载动画
-            try {
-                hideLoadingState();
-            } catch (error) {
-                console.error('隐藏加载动画时出错:', error);
-            }
-            
-            console.error("API调用错误:", error);
-            // 显示错误信息作为原始文本
-            try {
-                displayResults(practiceData, { 
-                    isRawText: true, 
-                    rawResponse: `调用API时出错: ${error.message || error}` 
-                });
-            } catch (displayError) {
-                console.error('显示错误结果时出错:', displayError);
-                alert('API调用失败: ' + error.message);
-            }
-        })
-        .finally(() => {
-            // 恢复提交按钮状态
-            try {
-                toggleSubmitState(false);
-            } catch (error) {
-                console.error('恢复按钮状态时出错:', error);
-            }
-        });
 }
 
 /**
- * 更新加载消息
- * @param {string} message - 新的加载消息
+ * 更新NVC表达式摘要
+ * @param {Object} practiceData - NVC练习数据
  */
-function updateLoadingMessage(message) {
-    const messageElement = document.getElementById('apiLoadingMessage');
+function updateNvcSummary(practiceData) {
+    const expressionElem = document.querySelector('#nvcSummaryContent .nvc-expression');
+    if (!expressionElem) return;
     
-    // 如果找不到消息元素，尝试重新创建加载状态
-    if (!messageElement) {
-        console.warn('找不到加载消息元素，可能加载容器尚未创建');
-        const resultsContainer = document.getElementById('resultsContainer');
-        if (resultsContainer && !document.getElementById('apiLoadingContainer')) {
-            console.log('尝试重新创建加载状态容器');
-            showLoadingState(resultsContainer);
+    // 使用generatePrompt函数生成NVC表达式（如果可用）
+    if (typeof generatePrompt === 'function') {
+        expressionElem.textContent = generatePrompt(practiceData);
+    } else {
+        // 手动拼接NVC表达式
+        let expression = '';
+        if (practiceData.observation) expression += `当我观察到${practiceData.observation}，`;
+        if (practiceData.feeling) expression += `我感到${practiceData.feeling}，`;
+        if (practiceData.need) expression += `因为我需要${practiceData.need}，`;
+        if (practiceData.request) expression += `所以我想请求${practiceData.request}`;
+        
+        // 清理末尾的逗号
+        expression = expression.trim();
+        if (expression.endsWith('，')) {
+            expression = expression.slice(0, -1) + '。';
+        } else if (!expression.endsWith('。')) {
+            expression += '。';
         }
         
-        // 再次尝试获取消息元素
-        const retryElement = document.getElementById('apiLoadingMessage');
-        if (retryElement) {
-            retryElement.textContent = message;
-        } else {
-            console.error('无法更新加载消息：找不到消息元素');
+        expressionElem.textContent = expression;
+    }
+}
+
+/**
+ * 添加操作按钮
+ * @param {HTMLElement} container - 要添加按钮的容器
+ */
+function appendActionButtons(container) {
+    // 创建按钮容器
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'mt-4 d-flex justify-content-between';
+    
+    // 创建"重新练习"按钮
+    const newPracticeBtn = document.createElement('button');
+    newPracticeBtn.className = 'btn btn-primary';
+    newPracticeBtn.innerHTML = '<i class="fas fa-redo"></i> 重新练习';
+    newPracticeBtn.onclick = function() {
+        // 显示表单卡片
+        const formCard = document.querySelector('.card:not(#aiResponseContainer)');
+        if (formCard) {
+            formCard.style.display = 'block';
         }
-    } else {
-        messageElement.textContent = message;
+        
+        // 隐藏AI响应容器
+        const aiResponseContainer = document.getElementById('aiResponseContainer');
+        if (aiResponseContainer) {
+            aiResponseContainer.style.display = 'none';
+        }
+        
+        // 清空表单
+        document.getElementById('observationInput').value = '';
+        document.getElementById('feelingInput').value = '';
+        document.getElementById('needInput').value = '';
+        document.getElementById('requestInput').value = '';
+    };
+    
+    // 创建"保存练习"按钮（仅当用户已登录时）
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn btn-success';
+    saveBtn.innerHTML = '<i class="fas fa-save"></i> 保存练习';
+    saveBtn.onclick = function() {
+        // 检查用户是否登录
+        const isLoggedIn = !!localStorage.getItem('nvc_user_token');
+        if (!isLoggedIn) {
+            alert('请先登录才能保存练习');
+            return;
+        }
+        
+        // TODO: 实现保存练习的功能
+        alert('保存练习功能即将上线，敬请期待！');
+    };
+    
+    // 将按钮添加到容器
+    buttonContainer.appendChild(newPracticeBtn);
+    buttonContainer.appendChild(saveBtn);
+    
+    // 将按钮容器添加到响应容器
+    container.appendChild(buttonContainer);
+}
+
+/**
+ * 将文本渲染为Markdown
+ * @param {string} text - 要渲染的文本
+ * @returns {string} 渲染后的HTML
+ */
+function renderMarkdown(text) {
+    try {
+        return marked.parse(text);
+    } catch (e) {
+        console.error('Markdown渲染出错:', e);
+        return text; // 如果渲染失败，返回原始文本
     }
 }
 

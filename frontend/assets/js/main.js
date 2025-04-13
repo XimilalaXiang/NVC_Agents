@@ -94,10 +94,10 @@ function initPracticePage() {
         e.preventDefault();
         
         // 获取表单数据
-        const observation = document.getElementById('observation').value.trim();
-        const feeling = document.getElementById('feeling').value.trim();
-        const need = document.getElementById('need').value.trim();
-        const request = document.getElementById('request').value.trim();
+        const observation = document.getElementById('observationInput').value.trim();
+        const feeling = document.getElementById('feelingInput').value.trim();
+        const need = document.getElementById('needInput').value.trim();
+        const request = document.getElementById('requestInput').value.trim();
         
         // 简单验证
         if (!observation || !feeling || !need || !request) {

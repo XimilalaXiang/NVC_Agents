@@ -10,6 +10,143 @@
     <link rel="stylesheet" href="../assets/css/styles.css">
     <!-- FontAwesome图标 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Marked.js用于Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js用于代码高亮 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
+    <style>
+        /* Markdown内容样式 */
+        .markdown-content {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            word-wrap: break-word;
+            padding: 15px;
+        }
+        
+        .markdown-content h1, .markdown-content h2, .markdown-content h3,
+        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .markdown-content h1 { font-size: 2em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
+        .markdown-content h2 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid #eaecef; }
+        .markdown-content h3 { font-size: 1.25em; }
+        .markdown-content h4 { font-size: 1em; }
+        .markdown-content h5 { font-size: 0.875em; }
+        .markdown-content h6 { font-size: 0.85em; color: #6a737d; }
+        
+        .markdown-content a { color: #0366d6; text-decoration: none; }
+        .markdown-content a:hover { text-decoration: underline; }
+        
+        .markdown-content pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+        
+        .markdown-content code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+        }
+        
+        .markdown-content pre code {
+            padding: 0;
+            font-size: 100%;
+            background-color: transparent;
+        }
+        
+        .markdown-content blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+        }
+        
+        .markdown-content ul, .markdown-content ol {
+            padding-left: 2em;
+        }
+        
+        .markdown-content table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        
+        .markdown-content table th, .markdown-content table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        .markdown-content table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        .markdown-content table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 0.2em solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spinner-border .75s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes spinner-border {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 调试区域样式 */
+        #debug-section {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #debug-log {
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #272822;
+            color: #f8f8f2;
+            font-family: monospace;
+            padding: 10px;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        #raw-data {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <!-- 导航栏 -->
@@ -37,6 +174,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="./history.html">练习历史</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./ai-assistant.html">AI助手</a>
                     </li>
                     <li class="nav-item" id="loginRegisterItem">
                         <a class="nav-link" href="./login.html">登录/注册</a>
@@ -127,145 +267,40 @@
                             </div>
                             <!-- 表单提交按钮 -->
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-primary" id="submitButton">
-                                    <span id="submitSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                                    <span>提交分析</span>
-                                </button>
+                                <a href="./ai-assistant.html" class="btn btn-primary" id="aiAssistantButton">
+                                    <i class="fas fa-robot me-2"></i>
+                                    前往AI助手页面分析
+                                </a>
+                                <p class="text-muted text-center mt-2"><small>点击上方按钮前往AI助手页面，使用您输入的内容进行更详细的分析和对话</small></p>
                             </div>
                         </form>
                     </div>
                 </div>
 
-                <!-- 分析结果区域（默认隐藏） -->
-                <div id="resultsContainer" class="card shadow-sm d-none">
+                <!-- AI助手回复区域（默认隐藏） -->
+                <div id="aiResponseContainer" class="card shadow-sm d-none">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>分析结果</h5>
+                        <h5 class="mb-0"><i class="fas fa-robot me-2"></i>非暴力沟通教练反馈</h5>
                     </div>
                     <div class="card-body">
-                        <!-- 总分区域 -->
-                        <div class="text-center mb-4" id="scoreCharts">
-                            <h4>总体评分</h4>
-                            <div class="score-display d-inline-block position-relative">
-                                <svg width="120" height="120" viewBox="0 0 120 120">
-                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" stroke-width="12"></circle>
-                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#4CAF50" stroke-width="12" 
-                                        stroke-dasharray="339.292" stroke-dashoffset="0" id="totalScoreCircle"></circle>
-                                </svg>
-                                <div class="position-absolute top-50 start-50 translate-middle">
-                                    <h3 class="mb-0" id="totalScoreDisplay">0</h3>
-                                    <small class="text-muted">分</small>
-                                </div>
+                        <!-- 你的NVC表达摘要 -->
+                        <div id="nvcSummary" class="card mb-4 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">你的NVC表达</h5>
+                            </div>
+                            <div class="card-body" id="nvcSummaryContent">
+                                <p class="nvc-sentence"></p>
                             </div>
                         </div>
-
-                        <!-- 各要素评分 -->
-                        <div class="row mb-4">
-                            <div class="col-md-3 col-6 text-center mb-3">
-                                <h6><i class="fas fa-eye text-primary me-1"></i>观察</h6>
-                                <div class="score-display score-display-sm d-inline-block position-relative">
-                                    <svg width="80" height="80" viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#42A5F5" stroke-width="8" 
-                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="observationScoreCircle"></circle>
-                                    </svg>
-                                    <div class="position-absolute top-50 start-50 translate-middle">
-                                        <h5 class="mb-0" id="observationScoreDisplay">0</h5>
-                                        <small class="text-muted">分</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 text-center mb-3">
-                                <h6><i class="fas fa-heart text-danger me-1"></i>感受</h6>
-                                <div class="score-display score-display-sm d-inline-block position-relative">
-                                    <svg width="80" height="80" viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#F44336" stroke-width="8" 
-                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="feelingScoreCircle"></circle>
-                                    </svg>
-                                    <div class="position-absolute top-50 start-50 translate-middle">
-                                        <h5 class="mb-0" id="feelingScoreDisplay">0</h5>
-                                        <small class="text-muted">分</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 text-center mb-3">
-                                <h6><i class="fas fa-seedling text-success me-1"></i>需要</h6>
-                                <div class="score-display score-display-sm d-inline-block position-relative">
-                                    <svg width="80" height="80" viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#4CAF50" stroke-width="8" 
-                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="needScoreCircle"></circle>
-                                    </svg>
-                                    <div class="position-absolute top-50 start-50 translate-middle">
-                                        <h5 class="mb-0" id="needScoreDisplay">0</h5>
-                                        <small class="text-muted">分</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6 text-center mb-3">
-                                <h6><i class="fas fa-hands-helping text-warning me-1"></i>请求</h6>
-                                <div class="score-display score-display-sm d-inline-block position-relative">
-                                    <svg width="80" height="80" viewBox="0 0 80 80">
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#e6e6e6" stroke-width="8"></circle>
-                                        <circle cx="40" cy="40" r="36" fill="none" stroke="#FFC107" stroke-width="8" 
-                                            stroke-dasharray="226.195" stroke-dashoffset="0" id="requestScoreCircle"></circle>
-                                    </svg>
-                                    <div class="position-absolute top-50 start-50 translate-middle">
-                                        <h5 class="mb-0" id="requestScoreDisplay">0</h5>
-                                        <small class="text-muted">分</small>
-                                    </div>
-                                </div>
-                            </div>
+                        
+                        <!-- 状态提示 -->
+                        <div id="statusDiv" class="text-center mb-4">
+                            <span class="loading"></span>正在等待非暴力沟通教练回复...
                         </div>
-
-                        <!-- 反馈内容 -->
-                        <div id="feedbackDetails">
-                            <h4 class="mb-3">详细反馈</h4>
-                            
-                            <div class="card mb-3 border-primary">
-                                <div class="card-header bg-primary text-white">
-                                    <h6 class="mb-0"><i class="fas fa-eye me-2"></i>观察部分反馈</h6>
-                                </div>
-                                <div class="card-body" id="observationFeedback">
-                                    <p class="feedback-placeholder">分析中...</p>
-                                </div>
-                            </div>
-                            
-                            <div class="card mb-3 border-danger">
-                                <div class="card-header bg-danger text-white">
-                                    <h6 class="mb-0"><i class="fas fa-heart me-2"></i>感受部分反馈</h6>
-                                </div>
-                                <div class="card-body" id="feelingFeedback">
-                                    <p class="feedback-placeholder">分析中...</p>
-                                </div>
-                            </div>
-                            
-                            <div class="card mb-3 border-success">
-                                <div class="card-header bg-success text-white">
-                                    <h6 class="mb-0"><i class="fas fa-seedling me-2"></i>需要部分反馈</h6>
-                                </div>
-                                <div class="card-body" id="needFeedback">
-                                    <p class="feedback-placeholder">分析中...</p>
-                                </div>
-                            </div>
-                            
-                            <div class="card mb-3 border-warning">
-                                <div class="card-header bg-warning text-white">
-                                    <h6 class="mb-0"><i class="fas fa-hands-helping me-2"></i>请求部分反馈</h6>
-                                </div>
-                                <div class="card-body" id="requestFeedback">
-                                    <p class="feedback-placeholder">分析中...</p>
-                                </div>
-                            </div>
-                            
-                            <div class="card mb-3 border-info">
-                                <div class="card-header bg-info text-white">
-                                    <h6 class="mb-0"><i class="fas fa-comment-dots me-2"></i>整体建议</h6>
-                                </div>
-                                <div class="card-body" id="overallFeedback">
-                                    <p class="feedback-placeholder">分析中...</p>
-                                </div>
-                            </div>
+                        
+                        <!-- AI回复内容区域 -->
+                        <div id="responseContainer" class="markdown-content border rounded p-3 mb-4">
+                            <!-- AI回复内容将在这里显示 -->
                         </div>
                         
                         <!-- 按钮区域 -->
@@ -278,6 +313,14 @@
                             </button>
                         </div>
                     </div>
+                </div>
+                
+                <!-- 调试区域 -->
+                <div id="debug-section" class="mt-4">
+                    <h5>调试信息 <small class="text-muted">（开发者使用）</small></h5>
+                    <div id="debug-log" class="mt-2"></div>
+                    <div id="raw-data" class="mt-2"></div>
+                    <button id="debug-toggle" class="btn btn-sm btn-outline-secondary mt-2">隐藏调试信息</button>
                 </div>
             </div>
         </div>
@@ -303,8 +346,78 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- 自定义JS -->
     <script src="../assets/js/auth.js"></script>
-    <script src="../assets/js/coze-api.js"></script>
+    <script>
+        // 当点击前往AI助手按钮时，保存表单数据
+        document.getElementById('aiAssistantButton').addEventListener('click', function(event) {
+            // 获取表单输入
+            const observationInput = document.getElementById('observationInput');
+            const feelingInput = document.getElementById('feelingInput');
+            const needInput = document.getElementById('needInput');
+            const requestInput = document.getElementById('requestInput');
+            
+            // 检查元素是否存在
+            if (!observationInput || !feelingInput || !needInput || !requestInput) {
+                console.error('找不到表单元素');
+                return; // 继续导航到AI助手页面
+            }
+            
+            // 获取数据
+            const practiceData = {
+                observation: observationInput.value.trim(),
+                feeling: feelingInput.value.trim(),
+                need: needInput.value.trim(),
+                request: requestInput.value.trim()
+            };
+            
+            // 检查是否至少有一个字段有内容
+            if (!practiceData.observation && !practiceData.feeling && !practiceData.need && !practiceData.request) {
+                alert('请至少填写一项NVC要素内容，这样AI助手才能为您提供更好的分析');
+                event.preventDefault(); // 阻止导航
+                return;
+            }
+            
+            // 组合成一个完整的NVC表达句子
+            let nvcSentence = "";
+            let parts = [];
+            
+            // 添加观察内容（如果有）
+            if (practiceData.observation) {
+                parts.push(practiceData.observation);
+            }
+            
+            // 添加感受内容（如果有）
+            if (practiceData.feeling) {
+                parts.push(practiceData.feeling);
+            }
+            
+            // 添加需要内容（如果有）
+            if (practiceData.need) {
+                parts.push(practiceData.need);
+            }
+            
+            // 添加请求内容（如果有）
+            if (practiceData.request) {
+                parts.push(practiceData.request);
+            }
+            
+            // 用逗号连接所有部分
+            nvcSentence = parts.join("，");
+            
+            // 如果句子不为空，确保以句号结尾
+            if (nvcSentence && !nvcSentence.endsWith("。")) {
+                nvcSentence += "。";
+            }
+            
+            // 保存到 localStorage
+            try {
+                localStorage.setItem('nvcPracticeData', JSON.stringify(practiceData));
+                localStorage.setItem('nvcSentence', nvcSentence);
+                console.log('NVC练习数据已保存，句子：', nvcSentence);
+            } catch (error) {
+                console.error('保存NVC练习数据时出错:', error);
+            }
+        });
+    </script>
     <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/practice.js"></script>
 </body>
 </html> 

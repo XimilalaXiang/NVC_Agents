@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>非暴力沟通 AI 助手</title>
-    <!-- 导入卡片系统的样式 -->
+    <!-- 引入Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/animations.css">
@@ -109,6 +109,7 @@
         /* Markdown样式美化 */
         .markdown-body {
             color: #1d1d1f;
+            min-height: 200px;
         }
 
         .markdown-body h1, 
@@ -361,40 +362,47 @@
         </div>
     </nav>
 
-    <div class="ai-container">
-        <h1>非暴力沟通 AI 助手</h1>
-        
-        <div class="bot-select">
-            <label for="bot-select">选择助手:</label>
-            <select id="bot-select">
-                <option value="7483330179063087138">非暴力沟通教练</option>
-                <option value="7488916378381402131">非暴力沟通知识库</option>
-            </select>
-        </div>
-        
-        <div class="input-section">
-            <div class="method-select">
-                <label class="method-option">
-                    <input type="radio" name="method" value="direct" checked> 直接请求API
-                </label>
+    <div class="container my-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-robot me-2"></i>非暴力沟通 AI 助手</h5>
             </div>
-            
-            <label for="user-input">输入你的问题:</label>
-            <textarea id="user-input" placeholder="例如: 请介绍一下非暴力沟通的四个要素"></textarea>
-            <div style="margin-top: 16px; text-align: center;">
-                <button id="send-button">发送请求</button>
-            </div>
-        </div>
-        
-        <div class="response-section">
-            <label>AI 回复:</label>
-            <div id="response-container" class="markdown-body">等待发送请求...</div>
-            <div id="status" class="status"></div>
-            <div id="raw-data" class="raw-data"></div>
-            <button class="debug-toggle" id="debug-toggle">显示调试信息</button>
-            
-            <div class="debug-section" id="debug-section">
-                <div class="debug-log" id="debug-log"></div>
+            <div class="card-body">
+                <div class="bot-select mb-4">
+                    <label for="bot-select" class="form-label">选择助手:</label>
+                    <select id="bot-select" class="form-select">
+                        <option value="7483330179063087138">非暴力沟通教练</option>
+                        <option value="7488916378381402131">非暴力沟通知识库</option>
+                    </select>
+                </div>
+                
+                <div class="input-section">
+                    <div class="method-select">
+                        <label class="method-option">
+                            <input type="radio" name="method" value="direct" checked> 直接请求API
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="user-input" class="form-label">输入你的问题:</label>
+                        <textarea id="user-input" class="form-control" rows="4" placeholder="例如: 请介绍一下非暴力沟通的四个要素"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button id="send-button" class="btn btn-primary">发送请求</button>
+                    </div>
+                </div>
+                
+                <div class="response-section mt-4">
+                    <h5 class="mb-3">AI 回复:</h5>
+                    <div id="response-container" class="markdown-body p-3 bg-light rounded">等待发送请求...</div>
+                    <div id="status" class="status mt-2 text-muted"></div>
+                    <div id="raw-data" class="raw-data"></div>
+                    <button class="debug-toggle btn btn-sm btn-outline-secondary mt-3" id="debug-toggle">显示调试信息</button>
+                    
+                    <div class="debug-section" id="debug-section">
+                        <div class="debug-log" id="debug-log"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -418,6 +426,54 @@
 
             // 设置默认示例问题
             userInput.value = "请介绍一下非暴力沟通的四个要素";
+
+            // 检查是否有从练习页面传递过来的NVC数据
+            try {
+                const nvcSentence = localStorage.getItem('nvcSentence');
+                const nvcPracticeData = localStorage.getItem('nvcPracticeData');
+                
+                if (nvcSentence && nvcSentence.trim()) {
+                    console.log('检测到来自练习页面的NVC表达:', nvcSentence);
+                    
+                    // 构建给AI的提示词
+                    let promptText = `请帮我分析以下非暴力沟通表达，并提供改进建议：\n\n${nvcSentence}\n\n注意：这个表达是按"观察、感受、需要、请求"的顺序用逗号分隔的四个部分。\n\n请分别从观察、感受、需要和请求四个部分给出具体评分和改进意见。`;
+                    
+                    // 设置用户输入
+                    userInput.value = promptText;
+                    
+                    // 选择"非暴力沟通教练"作为默认机器人
+                    if (botSelect) {
+                        for (let i = 0; i < botSelect.options.length; i++) {
+                            if (botSelect.options[i].textContent.includes('教练')) {
+                                botSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // 添加提示信息
+                    const practiceNotice = document.createElement('div');
+                    practiceNotice.className = 'alert alert-info mb-3';
+                    practiceNotice.innerHTML = `
+                        <h5><i class="fas fa-info-circle me-2"></i>来自NVC练习页面的内容</h5>
+                        <p>我们检测到您从练习页面跳转过来，并已自动创建了分析请求。点击"发送请求"获取AI反馈。</p>
+                        <div class="card bg-light p-2 mb-2">
+                            <strong>您的NVC表达（简化格式）：</strong>
+                            <p class="mb-0">${nvcSentence}</p>
+                            <small class="text-muted mt-1">格式说明：上述内容按观察、感受、需要、请求的顺序排列，以逗号分隔</small>
+                        </div>
+                    `;
+                    
+                    // 插入到输入框前面
+                    userInput.parentNode.insertBefore(practiceNotice, userInput);
+                    
+                    // 清除localStorage中的数据，避免刷新页面时重复显示
+                    localStorage.removeItem('nvcSentence');
+                    localStorage.removeItem('nvcPracticeData');
+                }
+            } catch (error) {
+                console.error('读取NVC练习数据时出错:', error);
+            }
 
             // 配置Marked选项
             marked.setOptions({
