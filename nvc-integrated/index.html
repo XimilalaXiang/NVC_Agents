@@ -274,12 +274,54 @@
         </div>
     </section>
 
+    <!-- 新增：问问大象品牌展示区 -->
+    <section class="py-5 bg-light bg-glow-secondary">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-7 fade-in-up">
+                    <h2 class="text-gradient mb-4">由「问问大象主题学习」精心打造</h2>
+                    <p class="lead">我们致力于通过创新的学习方法和工具，帮助更多人掌握非暴力沟通技巧，创造更和谐的人际关系。</p>
+                    <p>问问大象主题学习团队将持续更新本系统，提供更多实用的NVC学习资源和练习工具，欢迎关注我们的最新动态。</p>
+                    <!-- 添加互动元素 -->
+                    <div class="mt-4 d-flex flex-wrap gap-3">
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-heart text-danger me-2"></i>用爱驱动
+                        </div>
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>持续创新
+                        </div>
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-users text-primary me-2"></i>共同成长
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-center fade-in-up fade-in-up-delay-1">
+                    <div class="mascot-container position-relative">
+                        <!-- 气泡装饰 -->
+                        <div class="speech-bubble">
+                            嗨！一起学习<br>非暴力沟通吧！
+                        </div>
+                        <!-- 添加问问大象图片 -->
+                        <img src="./mascot.jpg" 
+                             onerror="this.onerror=null; this.src='https://b95b-static-xiang-6ghtoqfd66b1e958.static.cloud.tencent.com/mascot.jpg';" 
+                             alt="问问大象吉祥物" class="img-fluid mascot-image" style="max-width: 80%; opacity: 0.85; transform: rotate(-5deg);">
+                        <div class="mascot-shadow"></div>
+                        <!-- 小装饰元素 -->
+                        <div class="decoration-element decoration-1"></div>
+                        <div class="decoration-element decoration-2"></div>
+                        <div class="decoration-element decoration-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- 页脚 -->
-    <footer class="bg-light py-4">
+    <footer class="bg-light py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p>© 2025 非暴力沟通卡片系统</p>
+                    <p>© <span id="currentYear">2025</span> 非暴力沟通卡片系统</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
@@ -290,189 +332,18 @@
         </div>
     </footer>
 
+    <!-- 添加署名 -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5;">
+        <p class="small text-muted mb-0" style="font-size: 0.85rem; opacity: 0.8;">Made by 问问大象主题学习</p>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- 自定义JS，动态加载以处理加载失败情况 -->
+    <!-- 自定义JS -->
+    <script src="assets/js/main.js"></script>
     <script>
         // 设置年份
-        document.querySelectorAll('footer p').forEach(el => {
-            el.innerHTML = el.innerHTML.replace('2025', new Date().getFullYear());
-        });
-        
-        // 全局变量，记录资源加载状态
-        window.resourcesLoaded = {
-            authJs: false,
-            mainJs: false,
-            animationsCss: false
-        };
-        
-        // 检查localStorage是否可用
-        function isLocalStorageAvailable() {
-            try {
-                const test = 'test';
-                localStorage.setItem(test, test);
-                localStorage.removeItem(test);
-                return true;
-            } catch(e) {
-                return false;
-            }
-        }
-        
-        // 检查用户是否已登录
-        function isLoggedIn() {
-            return isLocalStorageAvailable() && localStorage.getItem('nvcUser') ? true : false;
-        }
-        
-        // 获取当前用户
-        function getCurrentUser() {
-            if (!isLocalStorageAvailable()) return null;
-            const userJson = localStorage.getItem('nvcUser');
-            return userJson ? JSON.parse(userJson) : null;
-        }
-        
-        // 更新UI状态
-        function updateAuthUI() {
-            const loginRegisterItem = document.getElementById('loginRegisterItem');
-            const userProfileItem = document.getElementById('userProfileItem');
-            const usernameDisplay = document.getElementById('usernameDisplay');
-            
-            if (isLoggedIn()) {
-                // 用户已登录
-                if (loginRegisterItem) loginRegisterItem.classList.add('d-none');
-                if (userProfileItem) {
-                    userProfileItem.classList.remove('d-none');
-                    const user = getCurrentUser();
-                    if (usernameDisplay && user) {
-                        usernameDisplay.textContent = user.username;
-                    }
-                }
-            } else {
-                // 用户未登录
-                if (loginRegisterItem) loginRegisterItem.classList.remove('d-none');
-                if (userProfileItem) userProfileItem.classList.add('d-none');
-            }
-        }
-        
-        // 跳转到登录页面的安全版本
-        window.navigateToLogin = function() {
-            // 如果相对路径不工作，尝试使用绝对路径
-            try {
-                let loginUrl = './pages/login.html';
-                window.location.href = loginUrl;
-            } catch (e) {
-                console.error('导航错误:', e);
-                // 尝试替代路径
-                window.location.href = window.location.origin + '/pages/login.html';
-            }
-        };
-        
-        // 尝试加载外部资源
-        function loadExternalResources() {
-            // 尝试加载animations.css
-            const animationsCss = document.createElement('link');
-            animationsCss.rel = 'stylesheet';
-            animationsCss.href = './assets/css/animations.css';
-            animationsCss.onload = function() {
-                console.log('animations.css 加载成功');
-                window.resourcesLoaded.animationsCss = true;
-                checkResourcesStatus();
-            };
-            animationsCss.onerror = function() {
-                console.warn('animations.css 加载失败');
-                // 尝试使用绝对路径
-                const absoluteAnimationsCss = document.createElement('link');
-                absoluteAnimationsCss.rel = 'stylesheet';
-                absoluteAnimationsCss.href = window.location.origin + '/assets/css/animations.css';
-                absoluteAnimationsCss.onload = function() {
-                    console.log('animations.css（绝对路径）加载成功');
-                    window.resourcesLoaded.animationsCss = true;
-                    checkResourcesStatus();
-                };
-                absoluteAnimationsCss.onerror = function() {
-                    console.warn('animations.css（绝对路径）加载失败');
-                    checkResourcesStatus();
-                };
-                document.head.appendChild(absoluteAnimationsCss);
-            };
-            document.head.appendChild(animationsCss);
-            
-            // 尝试加载auth.js
-            const authJs = document.createElement('script');
-            authJs.src = './assets/js/auth.js';
-            authJs.onload = function() {
-                console.log('auth.js 加载成功');
-                window.resourcesLoaded.authJs = true;
-                checkResourcesStatus();
-                // 如果加载成功，调用updateAuthUI确保用户状态正确显示
-                if (typeof window.updateAuthUI === 'function') {
-                    window.updateAuthUI();
-                }
-            };
-            authJs.onerror = function() {
-                console.warn('auth.js 加载失败');
-                // 尝试使用绝对路径
-                const absoluteAuthJs = document.createElement('script');
-                absoluteAuthJs.src = window.location.origin + '/assets/js/auth.js';
-                absoluteAuthJs.onload = function() {
-                    console.log('auth.js（绝对路径）加载成功');
-                    window.resourcesLoaded.authJs = true;
-                    checkResourcesStatus();
-                    if (typeof window.updateAuthUI === 'function') {
-                        window.updateAuthUI();
-                    }
-                };
-                absoluteAuthJs.onerror = function() {
-                    console.warn('auth.js（绝对路径）加载失败');
-                    checkResourcesStatus();
-                };
-                document.body.appendChild(absoluteAuthJs);
-            };
-            document.body.appendChild(authJs);
-            
-            // 尝试加载main.js
-            const mainJs = document.createElement('script');
-            mainJs.src = './assets/js/main.js';
-            mainJs.onload = function() {
-                console.log('main.js 加载成功');
-                window.resourcesLoaded.mainJs = true;
-                checkResourcesStatus();
-            };
-            mainJs.onerror = function() {
-                console.warn('main.js 加载失败');
-                // 尝试使用绝对路径
-                const absoluteMainJs = document.createElement('script');
-                absoluteMainJs.src = window.location.origin + '/assets/js/main.js';
-                absoluteMainJs.onload = function() {
-                    console.log('main.js（绝对路径）加载成功');
-                    window.resourcesLoaded.mainJs = true;
-                    checkResourcesStatus();
-                };
-                absoluteMainJs.onerror = function() {
-                    console.warn('main.js（绝对路径）加载失败');
-                    checkResourcesStatus();
-                };
-                document.body.appendChild(absoluteMainJs);
-            };
-            document.body.appendChild(mainJs);
-        }
-        
-        // 检查资源加载状态
-        function checkResourcesStatus() {
-            const allLoaded = Object.values(window.resourcesLoaded).every(status => status);
-            
-            if (allLoaded) {
-                console.log('所有资源加载成功');
-            } else {
-                console.warn('部分资源加载失败，使用备用功能');
-            }
-        }
-        
-        // 初始化页面
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('首页已加载');
-            updateAuthUI();
-            loadExternalResources();
-        });
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 
     <!-- 添加SVG动画 -->
@@ -497,6 +368,153 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+        
+        /* 问问大象图片样式 */
+        .mascot-container {
+            padding: 20px;
+            perspective: 1000px;
+            position: relative;
+            height: 350px;
+        }
+        
+        .mascot-image {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: float 6s ease-in-out infinite;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 5px 15px rgba(0, 123, 255, 0.2));
+            position: relative;
+            z-index: 2;
+        }
+        
+        .mascot-image:hover {
+            transform: rotate(0deg) scale(1.05);
+            opacity: 1 !important;
+        }
+        
+        .mascot-shadow {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 10px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            animation: shadow 6s ease-in-out infinite;
+            z-index: 1;
+        }
+        
+        /* 语音气泡 */
+        .speech-bubble {
+            position: absolute;
+            top: 10px;
+            right: 15%;
+            background-color: white;
+            border-radius: 20px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 3;
+            animation: bounce 3s ease-in-out infinite;
+            transform-origin: bottom left;
+            color: #0d6efd;
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+        
+        /* 装饰元素 */
+        .decoration-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            z-index: 1;
+        }
+        
+        .decoration-1 {
+            width: 25px;
+            height: 25px;
+            background-color: rgba(13, 110, 253, 0.3);
+            top: 10%;
+            left: 10%;
+            animation: move1 8s infinite alternate;
+        }
+        
+        .decoration-2 {
+            width: 15px;
+            height: 15px;
+            background-color: rgba(253, 126, 20, 0.3);
+            bottom: 20%;
+            right: 15%;
+            animation: move2 6s infinite alternate;
+        }
+        
+        .decoration-3 {
+            width: 20px;
+            height: 20px;
+            background-color: rgba(25, 135, 84, 0.3);
+            bottom: 30%;
+            left: 20%;
+            animation: move3 7s infinite alternate;
+        }
+        
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .feature-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-5deg); }
+            50% { transform: translateY(-15px) rotate(-2deg); }
+            100% { transform: translateY(0px) rotate(-5deg); }
+        }
+        
+        @keyframes shadow {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+            50% { transform: translateX(-50%) scale(0.85); opacity: 0.2; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes move1 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(10px, 10px); }
+        }
+        
+        @keyframes move2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-15px, -5px); }
+        }
+        
+        @keyframes move3 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(8px, -12px); }
         }
     </style>
 </body>
