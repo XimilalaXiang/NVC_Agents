@@ -347,6 +347,7 @@
                     <select id="bot-select" class="form-select">
                         <option value="7483330179063087138">非暴力沟通教练</option>
                         <option value="7488916378381402131">非暴力沟通知识库</option>
+                        <option value="7489060084270972940">非暴力沟通冲突拆解</option>
                     </select>
                 </div>
                 
@@ -417,10 +418,39 @@
                     return;
                 }
                 
+                // 获取当前选择的机器人类型
+                const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
+                
+                // 清洗答案内容，确保保存的是已处理过的内容
+                let cleanedAnswer = currentChat.answer;
+                
+                // 先使用通用的末尾清理
+                cleanedAnswer = cleanEndContent(cleanedAnswer);
+                
+                // 根据机器人类型选择适当的清理方法
+                if (selectedBotType === "非暴力沟通教练" || 
+                    cleanedAnswer.includes('NVC_coach') || 
+                    cleanedAnswer.includes('"TOTAL_score"') || 
+                    cleanedAnswer.includes('"FEELING"') || 
+                    cleanedAnswer.includes('"OBSERVATION"')) {
+                    cleanedAnswer = cleanNVCCoachOutput(cleanedAnswer);
+                } else if (selectedBotType === "非暴力沟通知识库") {
+                    cleanedAnswer = cleanKnowledgeBaseOutput(cleanedAnswer);
+                } else if (selectedBotType === "非暴力沟通冲突拆解" ||
+                    cleanedAnswer.includes('conflict_analysis') ||
+                    cleanedAnswer.includes('situation_summary') ||
+                    cleanedAnswer.includes('nvc_suggestions') ||
+                    cleanedAnswer.includes('技能 1: 定位冲突')) {
+                    cleanedAnswer = cleanConflictOutput(cleanedAnswer);
+                }
+                
+                // 记录日志
+                logDebug("保存对话 - 已清洗答案内容", cleanedAnswer.substring(0, 50) + "...");
+                
                 // 准备存储的对话数据
                 const chatData = {
                     question: currentChat.question,
-                    answer: currentChat.answer,
+                    answer: cleanedAnswer, // 使用清洗后的内容
                     botType: currentChat.botType,
                     timestamp: currentChat.timestamp || new Date().toISOString()
                 };
@@ -920,7 +950,8 @@
                 
                 // 如果文本不包含任何需要过滤的标志，直接返回
                 if (!text.includes('"msg_type"') && !text.includes('"finish_reason"') && 
-                    !text.includes('[DONE]') && !text.includes('FinData')) {
+                    !text.includes('[DONE]') && !text.includes('FinData') &&
+                    !text.includes('context_mode') && !text.includes('context_ext')) {
                     return text;
                 }
                 
@@ -932,6 +963,23 @@
                     // 截取到这个位置之前的内容
                     cleanedText = text.substring(0, msgTypeIndex).trim();
                     logDebug("移除了末尾的msg_type数据", `位置: ${msgTypeIndex}`);
+                }
+                
+                // 处理转义的 context_mode 和 API 响应相关格式
+                if (cleanedText.includes('context_mode') || cleanedText.includes('context_ext')) {
+                    const contextModeIndex = cleanedText.indexOf('context_mode');
+                    if (contextModeIndex > cleanedText.length / 2) { // 仅当出现在文本后半部分
+                        // 查找前面的最后一个段落结束位置
+                        const lastParagraphEnd = cleanedText.lastIndexOf('\n\n', contextModeIndex);
+                        if (lastParagraphEnd !== -1) {
+                            cleanedText = cleanedText.substring(0, lastParagraphEnd).trim();
+                            logDebug("移除了context_mode相关内容及其后的内容");
+                        }
+                    }
+                    
+                    // 处理转义的JSON格式
+                    cleanedText = cleanedText.replace(/\\+"context_mode\\+"[^}]*\\+"ability\\+"[^}]*\}/g, '');
+                    cleanedText = cleanedText.replace(/\\+"bot_id\\+"[^}]*\}/g, '');
                 }
                 
                 // 2. 处理 [DONE] 标记
@@ -997,7 +1045,10 @@
                 const questionPatterns = [
                     /如何在日常生活中运用非暴力沟通\s*\?/,
                     /分享一些非暴力沟通的成功案例/,
-                    /非暴力沟通和其他沟通方式的区别是什么\s*\?/
+                    /非暴力沟通和其他沟通方式的区别是什么\s*\?/,
+                    /请问你对这个冲突情境还有什么建议吗\s*\?/,
+                    /如何预防类似冲突的发生\s*\?/,
+                    /你能提供更具体的对话示例吗\s*\?/
                 ];
                 
                 for (const pattern of questionPatterns) {
@@ -1021,6 +1072,352 @@
                 // 移除可能最后残留的双引号、单引号和大括号
                 cleanedText = cleanedText.replace(/[\"\'}\s]+$/g, '');
                 
+                // 清理冲突拆解模型特有的末尾内容格式
+                if (cleanedText.includes('\\context_mode') || 
+                    cleanedText.includes('\\history_round') || 
+                    cleanedText.includes('\\ability')) {
+                    const formatIndex = Math.max(
+                        cleanedText.lastIndexOf('\\context_mode'),
+                        cleanedText.lastIndexOf('\\history_round'),
+                        cleanedText.lastIndexOf('\\ability')
+                    );
+                    
+                    if (formatIndex > cleanedText.length / 2) { // 只在后半部分处理
+                        cleanedText = cleanedText.substring(0, formatIndex).trim();
+                        logDebug("移除了冲突拆解模型特有的末尾格式");
+                    }
+                }
+                
+                return cleanedText.trim();
+            }
+
+            // 清理冲突拆解模型输出
+            function cleanConflictOutput(text) {
+                // 记录原始内容
+                logDebug("开始清理冲突拆解输出数据", text.substring(0, 100) + "...");
+                
+                // 如果文本不包含任何需要过滤的标志，直接返回
+                if (!text.includes('{') && !text.includes('{"msg_type"') && 
+                    !text.includes('conflict_analysis') && !text.includes('situation_summary') &&
+                    !text.includes('技能 1:') && !text.includes('context_mode') && !text.includes('技能:')) {
+                    return text;
+                }
+                
+                let cleanedText = text;
+                
+                // 0. 优先处理截图中的特定格式
+                if (cleanedText.includes('技能 1: 定位冲突') || 
+                    cleanedText.includes('技能: 1: 定位冲突') ||
+                    cleanedText.includes('当用户输入相关冲突场景的内容')) {
+                    
+                    // 清理技能描述部分
+                    const skillPatterns = [
+                        /技能 1: 定位冲突[^\n]*\n/g,
+                        /技能 2: 拆解冲突[^\n]*\n/g,
+                        /技能 3:[^\n]*\n/g,
+                        /技能: 1: 定位冲突[^\n]*\n/g,
+                        /技能: 2:[^\n]*\n/g,
+                        /当用户输入相关冲突场景的内容[^\n]*\n/g,
+                        /准确判断其所属的角色关系[^\n]*\n/g,
+                        /通过关键词清晰明了[^\n]*\n/g
+                    ];
+                    
+                    for (const pattern of skillPatterns) {
+                        cleanedText = cleanedText.replace(pattern, '');
+                    }
+                    
+                    logDebug("移除了技能描述内容");
+                }
+                
+                // 处理 context_mode 和 JSON 结构
+                if (cleanedText.includes('context_mode') && cleanedText.includes('ability')) {
+                    // 尝试找到最后一个括号的位置
+                    const lastBracketIndex = cleanedText.lastIndexOf('}');
+                    if (lastBracketIndex > 0) {
+                        // 查找这个位置之后的第一个正常文本
+                        const afterBracket = cleanedText.substring(lastBracketIndex + 1).trim();
+                        if (afterBracket.length > 10) {
+                            cleanedText = afterBracket;
+                            logDebug("从大型JSON对象后截取有效内容");
+                        } else {
+                            // 使用关键字搜索其他可能的起始点
+                            const startKeywords = ['冲突情境分析', '冲突各方', '冲突拆解', '情境总结'];
+                            for (const keyword of startKeywords) {
+                                const keywordPos = cleanedText.indexOf(keyword);
+                                if (keywordPos > lastBracketIndex) {
+                                    cleanedText = cleanedText.substring(keywordPos);
+                                    logDebug(`从关键词"${keyword}"位置截取内容`, keywordPos);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 1. 处理包含特定标记的格式
+                const conflictMarkers = [
+                    '冲突情境分析',
+                    '冲突各方',
+                    '冲突原因',
+                    '情境总结',
+                    '非暴力沟通建议',
+                    '拆解思路',
+                    '情感疏导',
+                    '需求识别',
+                    '我是NVC冲突拆解',
+                    '请介绍一下非暴力沟通'
+                ];
+                
+                // 找到第一个标记的位置，从那里开始截取
+                let firstMarkerPos = -1;
+                for (const marker of conflictMarkers) {
+                    const pos = cleanedText.indexOf(marker);
+                    if (pos > 0 && (firstMarkerPos === -1 || pos < firstMarkerPos)) {
+                        firstMarkerPos = pos;
+                    }
+                }
+                
+                if (firstMarkerPos > 0) {
+                    cleanedText = cleanedText.substring(firstMarkerPos);
+                    logDebug("从第一个冲突拆解标记开始截取内容", firstMarkerPos);
+                }
+                
+                // 2. 处理包含### 标记的格式
+                if (cleanedText.includes('###')) {
+                    // 分割内容
+                    const parts = cleanedText.split('###');
+                    
+                    // 检查第一部分是否包含JSON数据或技术信息
+                    if (parts[0].includes('{') || parts[0].includes('"name"') || 
+                        parts[0].includes('plugin_id') || parts[0].includes('context_mode') ||
+                        parts[0].includes('技能 1:') || parts[0].includes('技能:')) {
+                        // 只保留分隔符后面的内容
+                        cleanedText = parts.slice(1).join('###').trim();
+                        logDebug("移除了冲突拆解分隔符前的JSON或技术数据");
+                    }
+                }
+
+                // 处理截图中显示的技能和指令文本
+                const instructionPatterns = [
+                    /技能 1: [^\n]*\n/g,
+                    /技能 2: [^\n]*\n/g,
+                    /技能 3: [^\n]*\n/g,
+                    /技能: 1: [^\n]*\n/g,
+                    /技能: 2: [^\n]*\n/g,
+                    /技能: 3: [^\n]*\n/g,
+                    /限制:[^\n]*\n/g,
+                    /- 只回答与非暴力沟通相关的问题[^\n]*\n/g,
+                    /- 所输出的内容应该精简清晰[^\n]*\n/g,
+                    /- 引用知识库中的内容时[^\n]*\n/g
+                ];
+
+                for (const pattern of instructionPatterns) {
+                    cleanedText = cleanedText.replace(pattern, '');
+                }
+                
+                // 3. 尝试识别并移除JSON对象
+                if (cleanedText.includes('{') && (cleanedText.includes('"conflict_analysis"') || 
+                   cleanedText.includes('"situation_summary"') || cleanedText.includes('"nvc_suggestions"'))) {
+                    try {
+                        // 尝试查找和解析JSON对象
+                        const jsonStartPos = cleanedText.indexOf('{');
+                        let jsonEndPos = -1;
+                        let bracketCount = 1;
+                        
+                        for (let i = jsonStartPos + 1; i < cleanedText.length; i++) {
+                            if (cleanedText[i] === '{') bracketCount++;
+                            else if (cleanedText[i] === '}') {
+                                bracketCount--;
+                                if (bracketCount === 0) {
+                                    jsonEndPos = i;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (jsonEndPos > jsonStartPos) {
+                            const jsonStr = cleanedText.substring(jsonStartPos, jsonEndPos + 1);
+                            
+                            try {
+                                // 尝试解析JSON并提取有用内容
+                                const jsonObj = JSON.parse(jsonStr);
+                                let extractedContent = [];
+                                
+                                // 冲突分析
+                                if (jsonObj.conflict_analysis) {
+                                    extractedContent.push(`## 冲突情境分析`);
+                                    if (typeof jsonObj.conflict_analysis === 'string') {
+                                        extractedContent.push(jsonObj.conflict_analysis);
+                                    } else {
+                                        if (jsonObj.conflict_analysis.parties) {
+                                            extractedContent.push(`### 冲突各方`);
+                                            extractedContent.push(jsonObj.conflict_analysis.parties);
+                                        }
+                                        if (jsonObj.conflict_analysis.root_causes) {
+                                            extractedContent.push(`### 冲突原因`);
+                                            extractedContent.push(jsonObj.conflict_analysis.root_causes);
+                                        }
+                                    }
+                                }
+                                
+                                // 情境总结
+                                if (jsonObj.situation_summary) {
+                                    extractedContent.push(`## 情境总结`);
+                                    extractedContent.push(jsonObj.situation_summary);
+                                }
+                                
+                                // NVC建议
+                                if (jsonObj.nvc_suggestions) {
+                                    extractedContent.push(`## 非暴力沟通建议`);
+                                    if (typeof jsonObj.nvc_suggestions === 'string') {
+                                        extractedContent.push(jsonObj.nvc_suggestions);
+                                    } else {
+                                        if (jsonObj.nvc_suggestions.approach) {
+                                            extractedContent.push(`### 拆解思路`);
+                                            extractedContent.push(jsonObj.nvc_suggestions.approach);
+                                        }
+                                        if (jsonObj.nvc_suggestions.emotional_support) {
+                                            extractedContent.push(`### 情感疏导`);
+                                            extractedContent.push(jsonObj.nvc_suggestions.emotional_support);
+                                        }
+                                        if (jsonObj.nvc_suggestions.needs_identification) {
+                                            extractedContent.push(`### 需求识别`);
+                                            extractedContent.push(jsonObj.nvc_suggestions.needs_identification);
+                                        }
+                                    }
+                                }
+                                
+                                // 实际对话建议
+                                if (jsonObj.dialogue_suggestions) {
+                                    extractedContent.push(`## 对话建议`);
+                                    extractedContent.push(jsonObj.dialogue_suggestions);
+                                }
+                                
+                                if (extractedContent.length > 0) {
+                                    // 组合提取的内容，使用双换行作为分隔
+                                    cleanedText = extractedContent.join('\n\n');
+                                    logDebug("从JSON中成功提取冲突拆解内容", cleanedText.substring(0, 100) + "...");
+                                    
+                                    // 直接返回，不需要继续处理
+                                    return cleanedText.trim();
+                                }
+                            } catch (e) {
+                                logDebug("JSON解析失败", e.message);
+                                
+                                // 如果解析失败，至少移除这个JSON
+                                cleanedText = cleanedText.replace(jsonStr, '').trim();
+                                logDebug("移除了无法解析的JSON对象");
+                            }
+                        }
+                    } catch (e) {
+                        logDebug("JSON查找失败", e.message);
+                    }
+                }
+                
+                // 4. 使用正则表达式移除其他JSON对象和技术细节
+                try {
+                    // 处理截图中显示的JSON格式
+                    if (cleanedText.includes('context_mode') || cleanedText.includes('status_code')) {
+                        const complexFormatRegex = /\\{2,}context_mode\\{2,}[^}]*\\{2,}history_round\\{2,}[^}]*\\{2,}ability\\{2,}[^}]*\}/g;
+                        cleanedText = cleanedText.replace(complexFormatRegex, '');
+                        logDebug("移除了转义格式的JSON");
+                        
+                        // 移除其他与API响应相关的内容
+                        cleanedText = cleanedText.replace(/\\"bot_id\\":\\"[^"]*\\"/g, '');
+                        cleanedText = cleanedText.replace(/\\"bot_name\\":\\"[^"]*\\"/g, '');
+                        cleanedText = cleanedText.replace(/\\"id\\":\\"[^"]*\\"/g, '');
+                        cleanedText = cleanedText.replace(/\\"name\\":\\"[^"]*\\"/g, '');
+                        logDebug("移除了其他API细节内容");
+                    }
+                    
+                    // 移除JSON对象
+                    const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
+                    const matches = cleanedText.match(jsonRegex);
+                    
+                    if (matches) {
+                        for (const match of matches) {
+                            if (match.includes('conflict_analysis') || 
+                                match.includes('situation_summary') || 
+                                match.includes('nvc_suggestions') ||
+                                match.includes('context_mode') || 
+                                match.includes('ability') ||
+                                match.includes('bot_id')) {
+                                cleanedText = cleanedText.replace(match, '');
+                                logDebug("使用正则表达式移除了冲突拆解JSON", match.substring(0, 30) + "...");
+                            }
+                        }
+                    }
+                } catch (e) {
+                    logDebug("正则表达式处理失败", e.message);
+                }
+                
+                // 5. 清理特殊格式的文本（如截图中所示）
+                // 移除技能部分
+                const skillSections = [
+                    /技能 \d+: [^\n]*\n/g,
+                    /技能: \d+: [^\n]*\n/g,
+                    /限制:[^\n]*\n/g
+                ];
+                
+                for (const pattern of skillSections) {
+                    cleanedText = cleanedText.replace(pattern, '');
+                }
+                
+                // 移除格式化信息 
+                cleanedText = cleanedText.replace(/\\\\"/g, '"');
+                cleanedText = cleanedText.replace(/\\\\/g, '');
+                
+                // 移除双反斜杠转义字符和无用的双引号
+                cleanedText = cleanedText.replace(/\\\\+/g, '');
+                cleanedText = cleanedText.replace(/"{2,}/g, '"');
+                
+                // 移除 context_mode 相关部分
+                if (cleanedText.includes('context_mode') || cleanedText.includes('context_ext')) {
+                    const contextPattern = /"?context_mode"?:[^,}]*,?/g;
+                    cleanedText = cleanedText.replace(contextPattern, '');
+                    
+                    const historyPattern = /"?history_round"?:[^,}]*,?/g;
+                    cleanedText = cleanedText.replace(historyPattern, '');
+                    
+                    const abilityPattern = /"?ability"?:[^}]*\}/g;
+                    cleanedText = cleanedText.replace(abilityPattern, '');
+                    
+                    logDebug("移除了context相关的数据");
+                }
+                
+                // 6. 清理和格式化
+                
+                // 移除可能的JSON代码块
+                cleanedText = cleanedText.replace(/```json[\s\S]*?```/g, '');
+                
+                // 清理多余的空行和空格
+                cleanedText = cleanedText.replace(/^\s*[\r\n]/gm, '');
+                cleanedText = cleanedText.replace(/\n{3,}/g, '\n\n');
+                
+                // 移除重复的双引号和其他特殊字符
+                cleanedText = cleanedText.replace(/""+/g, '"');
+                cleanedText = cleanedText.replace(/\\+/g, '');
+                
+                // 如果清理后的文本长度小于10个字符，可能过度过滤了，返回原始文本
+                if (cleanedText.trim().length < 10 && text.length > 100) {
+                    logDebug("清理后内容过短，尝试应用更简单的清理方式");
+                    
+                    // 尝试更简单的清理方式：直接查找冲突相关的关键词
+                    for (const marker of conflictMarkers) {
+                        const pos = text.indexOf(marker);
+                        if (pos > 0) {
+                            cleanedText = text.substring(pos);
+                            // 移除常见的JSON结构
+                            cleanedText = cleanedText.replace(/\{[^{]*"context_mode"[^}]*\}/g, '');
+                            cleanedText = cleanedText.replace(/\{[^{]*"bot_id"[^}]*\}/g, '');
+                            cleanedText = cleanedText.replace(/\{[^{]*"knowledge_list"[^}]*\}/g, '');
+                            
+                            logDebug("使用简化清理方式：从关键词开始截取", marker);
+                            break;
+                        }
+                    }
+                }
+                
                 return cleanedText.trim();
             }
 
@@ -1037,6 +1434,11 @@
                     return cleanNVCCoachOutput(cleanedText);
                 } else if (botType === "非暴力沟通知识库") {
                     return cleanKnowledgeBaseOutput(cleanedText);
+                } else if (botType === "非暴力沟通冲突拆解" ||
+                    cleanedText.includes('conflict_analysis') ||
+                    cleanedText.includes('situation_summary') ||
+                    cleanedText.includes('nvc_suggestions')) {
+                    return cleanConflictOutput(cleanedText);
                 } else {
                     // 通用清理
                     
@@ -1088,7 +1490,14 @@
                         '观察模块:',
                         '1. 理念传承者',
                         '我是非暴力沟通',
-                        '基于马歇尔'
+                        '基于马歇尔',
+                        // 冲突拆解相关的断点
+                        '## 冲突情境分析',
+                        '## 情境总结',
+                        '## 非暴力沟通建议',
+                        '## 对话建议',
+                        '冲突情境分析',
+                        '冲突各方'
                     ];
                     
                     // 查找是否有完整的重复段落
@@ -1126,6 +1535,59 @@
                             // 直接截取从标记开始的内容
                             const actualContent = finalText.substring(startPos).trim();
                             logDebug("特殊处理：直接提取知识库回复内容", actualContent.substring(0, 50) + "...");
+                            
+                            // 渲染处理后的内容
+                            responseContainer.innerHTML = renderMarkdown(actualContent);
+                            
+                            // 代码高亮
+                            document.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightBlock(block);
+                            });
+                            
+                            return; // 提前返回，不执行后续的过滤逻辑
+                        }
+                    }
+                    
+                    // 冲突拆解特殊格式处理
+                    if (finalText.includes('技能 1: 定位冲突') || 
+                        finalText.includes('技能: 1: 定位冲突') || 
+                        (finalText.includes('context_mode') && finalText.includes('ability')) ||
+                        finalText.includes('当用户输入相关冲突场景的内容')) {
+                        
+                        // 查找冲突拆解内容的开始位置
+                        const conflictMarkers = [
+                            '冲突情境分析',
+                            '冲突各方',
+                            '冲突原因',
+                            '情境总结',
+                            '非暴力沟通建议',
+                            '拆解思路',
+                            '情感疏导',
+                            '需求识别'
+                        ];
+                        
+                        let startPos = -1;
+                        for (const marker of conflictMarkers) {
+                            const pos = finalText.indexOf(marker);
+                            if (pos > 0) {
+                                startPos = pos;
+                                break;
+                            }
+                        }
+                        
+                        // 如果找到标记位置，直接截取内容
+                        if (startPos > 0) {
+                            let actualContent = finalText.substring(startPos).trim();
+                            
+                            // 移除可能的JSON和技术指令内容
+                            actualContent = actualContent.replace(/技能 \d+: [^\n]*\n/g, '');
+                            actualContent = actualContent.replace(/技能: \d+: [^\n]*\n/g, '');
+                            actualContent = actualContent.replace(/限制:[^\n]*\n/g, '');
+                            actualContent = actualContent.replace(/\{[^{]*"context_mode"[^}]*\}/g, '');
+                            actualContent = actualContent.replace(/\{[^{]*"bot_id"[^}]*\}/g, '');
+                            actualContent = actualContent.replace(/\\"context_mode\\"[^}]*\}/g, '');
+                            
+                            logDebug("冲突拆解特殊处理：直接提取有效内容", actualContent.substring(0, 50) + "...");
                             
                             // 渲染处理后的内容
                             responseContainer.innerHTML = renderMarkdown(actualContent);
@@ -1201,6 +1663,8 @@
                     userInput.placeholder = "例如: 请帮我分析一个冲突情境并提供非暴力沟通的建议";
                 } else if (botType === "非暴力沟通知识库") {
                     userInput.placeholder = "例如: 请介绍一下非暴力沟通的四个要素";
+                } else if (botType === "非暴力沟通冲突拆解") {
+                    userInput.placeholder = "例如: 我和同事在项目安排上产生了分歧，他总是打断我的发言，我该如何处理这个冲突？";
                 }
             });
 
@@ -1619,7 +2083,14 @@
                             '观察模块:',
                             '1. 理念传承者',
                             '我是非暴力沟通',
-                            '基于马歇尔'
+                            '基于马歇尔',
+                            // 冲突拆解相关的断点
+                            '## 冲突情境分析',
+                            '## 情境总结',
+                            '## 非暴力沟通建议',
+                            '## 对话建议',
+                            '冲突情境分析',
+                            '冲突各方'
                         ];
                         
                         let cleanedText = text;
