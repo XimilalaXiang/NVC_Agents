@@ -697,6 +697,195 @@
                 margin-bottom: 10px;
             }
         }
+        
+        /* 问问大象图片样式 */
+        .mascot-container {
+            padding: 20px;
+            perspective: 1000px;
+            position: relative;
+            height: 350px;
+        }
+        
+        .mascot-image {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: float 6s ease-in-out infinite;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 5px 15px rgba(0, 123, 255, 0.2));
+            position: relative;
+            z-index: 2;
+        }
+        
+        .mascot-image:hover {
+            transform: rotate(0deg) scale(1.05);
+            opacity: 1 !important;
+        }
+        
+        .mascot-shadow {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 10px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            animation: shadow 6s ease-in-out infinite;
+            z-index: 1;
+        }
+        
+        /* 语音气泡 */
+        .speech-bubble {
+            position: absolute;
+            top: 10px;
+            right: 15%;
+            background-color: white;
+            border-radius: 20px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 3;
+            animation: bounce 3s ease-in-out infinite;
+            transform-origin: bottom left;
+            color: #0d6efd;
+        }
+        
+        .speech-bubble:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+        
+        /* 装饰元素 */
+        .decoration-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            z-index: 1;
+        }
+        
+        .decoration-1 {
+            width: 25px;
+            height: 25px;
+            background-color: rgba(13, 110, 253, 0.3);
+            top: 10%;
+            left: 10%;
+            animation: move1 8s infinite alternate;
+        }
+        
+        .decoration-2 {
+            width: 15px;
+            height: 15px;
+            background-color: rgba(253, 126, 20, 0.3);
+            bottom: 20%;
+            right: 15%;
+            animation: move2 6s infinite alternate;
+        }
+        
+        .decoration-3 {
+            width: 20px;
+            height: 20px;
+            background-color: rgba(25, 135, 84, 0.3);
+            bottom: 30%;
+            left: 20%;
+            animation: move3 7s infinite alternate;
+        }
+        
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .feature-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(-5deg); }
+            50% { transform: translateY(-15px) rotate(-2deg); }
+            100% { transform: translateY(0px) rotate(-5deg); }
+        }
+        
+        @keyframes shadow {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+            50% { transform: translateX(-50%) scale(0.85); opacity: 0.2; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0.4; }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes move1 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(10px, 10px); }
+        }
+        
+        @keyframes move2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-15px, -5px); }
+        }
+        
+        @keyframes move3 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(8px, -12px); }
+        }
     </style>
+
+    <!-- 添加问问大象品牌展示区 -->
+    <section class="py-5 bg-light bg-glow-secondary">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-7 fade-in-up">
+                    <h2 class="text-gradient mb-4">由「问问大象主题学习」精心打造</h2>
+                    <p class="lead">我们致力于通过创新的学习方法和工具，帮助更多人掌握非暴力沟通技巧，创造更和谐的人际关系。</p>
+                    <p>问问大象主题学习团队将持续更新本系统，提供更多实用的NVC学习资源和练习工具，欢迎关注我们的最新动态。</p>
+                    <!-- 添加互动元素 -->
+                    <div class="mt-4 d-flex flex-wrap gap-3">
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-heart text-danger me-2"></i>用爱驱动
+                        </div>
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>持续创新
+                        </div>
+                        <div class="feature-badge glow-hover">
+                            <i class="fas fa-users text-primary me-2"></i>共同成长
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 text-center fade-in-up fade-in-up-delay-1">
+                    <div class="mascot-container position-relative">
+                        <!-- 气泡装饰 -->
+                        <div class="speech-bubble">
+                            嗨！一起学习<br>非暴力沟通吧！
+                        </div>
+                        <!-- 添加问问大象图片 -->
+                        <img src="../mascot.jpg" 
+                             onerror="this.onerror=null; this.src='https://b95b-static-xiang-6ghtoqfd66b1e958.static.cloud.tencent.com/mascot.jpg';" 
+                             alt="问问大象吉祥物" class="img-fluid mascot-image" style="max-width: 80%; opacity: 0.85; transform: rotate(-5deg);">
+                        <div class="mascot-shadow"></div>
+                        <!-- 小装饰元素 -->
+                        <div class="decoration-element decoration-1"></div>
+                        <div class="decoration-element decoration-2"></div>
+                        <div class="decoration-element decoration-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 </html> 
