@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话历史记录 - 非暴力沟通卡片系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Markdown渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.1.0/github-markdown.min.css">
+    <!-- 代码高亮 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>
+    
+    <style>
+        .chat-container {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+        
+        .chat-container:hover {
+            transform: translateY(-3px);
+        }
+        
+        .chat-header {
+            padding: 12px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-timestamp {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .chat-body {
+            padding: 20px;
+            background-color: #fff;
+        }
+        
+        .chat-question {
+            background-color: #f0f7ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        
+        .chat-question::before {
+            content: "问题";
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background-color: #0d6efd;
+            color: white;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        
+        .chat-answer {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .chat-answer::before {
+            content: "回答";
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background-color: #198754;
+            color: white;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        
+        .chat-footer {
+            padding: 12px 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid rgba(0, 0, 0, 0.125);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .empty-history {
+            text-align: center;
+            padding: 60px 0;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            color: #6c757d;
+        }
+        
+        .empty-history i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .markdown-body {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .markdown-body pre {
+            background-color: #f6f8fa;
+            border-radius: 6px;
+        }
+        
+        .bot-type-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            color: #555;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-comments me-2"></i>非暴力沟通卡片系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">首页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./elements.html">NVC要素</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./cases.html">案例卡片</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./practice.html">练习</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./chat-history.html">历史记录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./ai-assistant.html">AI助手</a>
+                    </li>
+                    <li class="nav-item" id="loginRegisterItem">
+                        <a class="nav-link" href="./login.html">登录/注册</a>
+                    </li>
+                    <li class="nav-item d-none" id="userProfileItem">
+                        <a class="nav-link" href="./profile.html">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="usernameDisplay"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 导航面包屑 -->
+    <div class="container mt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">首页</a></li>
+                <li class="breadcrumb-item active" aria-current="page">对话历史记录</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- 历史记录内容 -->
+    <section class="container py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-history me-2"></i>对话历史记录</h4>
+                        <button id="clear-all-btn" class="btn btn-sm btn-outline-light">
+                            <i class="fas fa-trash-alt me-1"></i>清空所有历史
+                        </button>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="history-container">
+                            <!-- 历史记录将在此动态生成 -->
+                        </div>
+                        
+                        <!-- 没有历史记录时显示 -->
+                        <div id="empty-history" class="empty-history d-none">
+                            <i class="fas fa-comment-slash"></i>
+                            <h4>暂无对话历史</h4>
+                            <p class="text-muted">在AI助手页面进行对话并保存，记录将显示在这里</p>
+                            <a href="./ai-assistant.html" class="btn btn-primary mt-3">
+                                <i class="fas fa-robot me-2"></i>前往AI助手
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>© <span id="currentYear">2025</span> 非暴力沟通卡片系统</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-decoration-none text-muted me-3">关于我们</a>
+                    <a href="#" class="text-decoration-none text-muted me-3">使用条款</a>
+                    <a href="#" class="text-decoration-none text-muted">隐私政策</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    
+    <!-- 历史记录脚本 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置年份
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // 获取DOM元素
+            const historyContainer = document.getElementById('history-container');
+            const emptyHistory = document.getElementById('empty-history');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            
+            // 配置Marked选项
+            marked.setOptions({
+                renderer: new marked.Renderer(),
+                highlight: function(code, lang) {
+                    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                    return hljs.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-',
+                pedantic: false,
+                gfm: true,
+                breaks: true,
+                sanitize: false,
+                smartypants: false,
+                xhtml: false
+            });
+            
+            // 加载历史记录
+            loadChatHistory();
+            
+            // 加载历史记录
+            function loadChatHistory() {
+                try {
+                    // 从localStorage获取历史记录
+                    const chatHistory = JSON.parse(localStorage.getItem('nvcChatHistory') || '[]');
+                    
+                    // 如果没有历史记录，显示空状态
+                    if (!chatHistory || chatHistory.length === 0) {
+                        historyContainer.innerHTML = '';
+                        emptyHistory.classList.remove('d-none');
+                        return;
+                    }
+                    
+                    // 隐藏空状态
+                    emptyHistory.classList.add('d-none');
+                    
+                    // 清空容器
+                    historyContainer.innerHTML = '';
+                    
+                    // 反转数组以显示最新的对话在前面
+                    const reversedHistory = [...chatHistory].reverse();
+                    
+                    // 遍历并显示每条历史记录
+                    reversedHistory.forEach((chat, index) => {
+                        // 创建历史记录卡片
+                        const chatCard = createChatCard(chat, index);
+                        historyContainer.appendChild(chatCard);
+                    });
+                } catch (error) {
+                    console.error('加载历史记录失败:', error);
+                    historyContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            加载历史记录时出错: ${error.message}
+                        </div>
+                    `;
+                }
+            }
+            
+            // 创建历史记录卡片
+            function createChatCard(chat, index) {
+                const chatDate = new Date(chat.timestamp);
+                const formattedDate = formatDate(chatDate);
+                
+                // 创建卡片元素
+                const card = document.createElement('div');
+                card.className = 'chat-container';
+                card.id = `chat-${index}`;
+                
+                // 构建卡片内容
+                card.innerHTML = `
+                    <div class="chat-header">
+                        <div>
+                            <span class="fw-bold">对话 #${index + 1}</span>
+                            <span class="bot-type-badge">${chat.botType}</span>
+                        </div>
+                        <span class="chat-timestamp"><i class="far fa-clock me-1"></i>${formattedDate}</span>
+                    </div>
+                    <div class="chat-body">
+                        <div class="chat-question mb-4">
+                            <p class="mb-0">${chat.question}</p>
+                        </div>
+                        <div class="chat-answer">
+                            <div class="markdown-body">${marked.parse(chat.answer)}</div>
+                        </div>
+                    </div>
+                    <div class="chat-footer">
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" data-index="${index}">
+                            <i class="far fa-copy me-1"></i>复制对话
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-btn" data-index="${index}">
+                            <i class="far fa-trash-alt me-1"></i>删除
+                        </button>
+                    </div>
+                `;
+                
+                // 添加事件监听器
+                setTimeout(() => {
+                    // 复制按钮
+                    const copyBtn = card.querySelector('.copy-btn');
+                    copyBtn.addEventListener('click', () => {
+                        copyChat(chat);
+                    });
+                    
+                    // 删除按钮
+                    const deleteBtn = card.querySelector('.delete-btn');
+                    deleteBtn.addEventListener('click', () => {
+                        deleteChat(index);
+                    });
+                    
+                    // 高亮代码块
+                    card.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+                }, 0);
+                
+                return card;
+            }
+            
+            // 删除单条历史记录
+            function deleteChat(index) {
+                try {
+                    // 显示确认对话框
+                    if (!confirm('确定要删除这条对话记录吗？此操作不可撤销。')) {
+                        return;
+                    }
+                    
+                    // 获取原始历史记录
+                    const chatHistory = JSON.parse(localStorage.getItem('nvcChatHistory') || '[]');
+                    
+                    // 删除指定索引的记录
+                    const reversedIndex = chatHistory.length - 1 - index;
+                    chatHistory.splice(reversedIndex, 1);
+                    
+                    // 保存回localStorage
+                    localStorage.setItem('nvcChatHistory', JSON.stringify(chatHistory));
+                    
+                    // 重新加载历史记录
+                    loadChatHistory();
+                    
+                    // 显示成功提示
+                    showAlert('success', '历史记录已删除');
+                } catch (error) {
+                    console.error('删除历史记录失败:', error);
+                    showAlert('danger', `删除失败: ${error.message}`);
+                }
+            }
+            
+            // 复制对话内容
+            function copyChat(chat) {
+                try {
+                    // 构建要复制的文本
+                    const textToCopy = `问题: ${chat.question}\n\n回答: ${chat.answer}`;
+                    
+                    // 复制到剪贴板
+                    navigator.clipboard.writeText(textToCopy).then(
+                        function() {
+                            showAlert('success', '对话内容已复制到剪贴板');
+                        }, 
+                        function(err) {
+                            console.error('复制失败:', err);
+                            showAlert('warning', '复制失败，请手动复制');
+                            
+                            // 备用方法：创建临时textarea
+                            const textArea = document.createElement('textarea');
+                            textArea.value = textToCopy;
+                            document.body.appendChild(textArea);
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                            showAlert('success', '对话内容已复制到剪贴板');
+                        }
+                    );
+                } catch (error) {
+                    console.error('复制失败:', error);
+                    showAlert('danger', `复制失败: ${error.message}`);
+                }
+            }
+            
+            // 清空所有历史记录
+            clearAllBtn.addEventListener('click', function() {
+                try {
+                    // 显示确认对话框
+                    if (!confirm('确定要清空所有对话历史记录吗？此操作不可撤销。')) {
+                        return;
+                    }
+                    
+                    // 清空历史记录
+                    localStorage.setItem('nvcChatHistory', '[]');
+                    
+                    // 重新加载历史记录
+                    loadChatHistory();
+                    
+                    // 显示成功提示
+                    showAlert('success', '所有历史记录已清空');
+                } catch (error) {
+                    console.error('清空历史记录失败:', error);
+                    showAlert('danger', `清空失败: ${error.message}`);
+                }
+            });
+            
+            // 显示提示
+            function showAlert(type, message) {
+                // 创建提示元素
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3`;
+                alert.setAttribute('role', 'alert');
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // 添加到页面
+                document.body.appendChild(alert);
+                
+                // 3秒后自动消失
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(alert);
+                    }, 150);
+                }, 3000);
+            }
+            
+            // 格式化日期
+            function formatDate(date) {
+                const options = { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour: '2-digit', 
+                    minute: '2-digit'
+                };
+                return date.toLocaleDateString('zh-CN', options).replace(/\//g, '-');
+            }
+        });
+    </script>
+</body>
+</html>

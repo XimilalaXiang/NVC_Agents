@@ -258,22 +258,6 @@
             margin-top: 8px;
         }
 
-        .method-select {
-            display: flex;
-            margin-bottom: 16px;
-            gap: 12px;
-        }
-
-        .method-option {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .method-option input {
-            margin-right: 6px;
-        }
-
         /* 原始数据显示 */
         .raw-data {
             margin-top: 8px;
@@ -341,6 +325,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="./practice.html">练习</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./chat-history.html">历史记录</a>
+                    </li>
                     <!-- 当前页面激活 -->
                     <li class="nav-item">
                         <a class="nav-link active" href="./ai-assistant.html">AI助手</a>
@@ -374,12 +361,6 @@
                 </div>
                 
                 <div class="input-section">
-                    <div class="method-select">
-                        <label class="method-option">
-                            <input type="radio" name="method" value="direct" checked> 直接请求API
-                        </label>
-                    </div>
-                    
                     <div class="mb-3">
                         <label for="user-input" class="form-label">输入你的问题:</label>
                         <textarea id="user-input" class="form-control" rows="4" placeholder="例如: 请介绍一下非暴力沟通的四个要素"></textarea>
@@ -394,7 +375,13 @@
                     <div id="response-container" class="markdown-body p-3 bg-light rounded">等待发送请求...</div>
                     <div id="status" class="status mt-2 text-muted"></div>
                     <div id="raw-data" class="raw-data"></div>
-                    <button class="debug-toggle btn btn-sm btn-outline-secondary mt-3" id="debug-toggle">显示调试信息</button>
+                    <!-- 添加保存按钮，默认隐藏 -->
+                    <div class="mt-3 d-flex justify-content-between">
+                        <button class="debug-toggle btn btn-sm btn-outline-secondary" id="debug-toggle">显示调试信息</button>
+                        <button class="btn btn-sm btn-success d-none" id="save-chat-button">
+                            <i class="fas fa-save me-1"></i>保存对话
+                        </button>
+                    </div>
                     
                     <div class="debug-section" id="debug-section">
                         <div class="debug-log" id="debug-log"></div>
@@ -420,9 +407,82 @@
             const debugLog = document.getElementById('debug-log');
             const rawDataDiv = document.getElementById('raw-data');
             const botSelect = document.getElementById('bot-select');
+            const saveChatButton = document.getElementById('save-chat-button'); // 获取保存按钮元素
 
             // 设置默认示例问题
             userInput.value = "请介绍一下非暴力沟通的四个要素";
+            
+            // 当前对话变量，用于保存当前用户问题和AI回复
+            let currentChat = {
+                question: "",
+                answer: "",
+                botType: "",
+                timestamp: null
+            };
+            
+            // 为保存按钮添加点击事件
+            saveChatButton.addEventListener('click', function() {
+                // 如果没有对话内容，不执行保存
+                if (!currentChat.question || !currentChat.answer) {
+                    return;
+                }
+                
+                // 准备存储的对话数据
+                const chatData = {
+                    question: currentChat.question,
+                    answer: currentChat.answer,
+                    botType: currentChat.botType,
+                    timestamp: currentChat.timestamp || new Date().toISOString()
+                };
+                
+                // 从localStorage获取已保存的历史记录
+                let chatHistory = [];
+                try {
+                    const savedHistory = localStorage.getItem('nvcChatHistory');
+                    if (savedHistory) {
+                        chatHistory = JSON.parse(savedHistory);
+                    }
+                } catch (e) {
+                    console.error('读取历史记录失败:', e);
+                    // 如果读取失败，使用空数组
+                    chatHistory = [];
+                }
+                
+                // 添加新的对话到历史记录
+                chatHistory.push(chatData);
+                
+                // 保存回localStorage
+                try {
+                    localStorage.setItem('nvcChatHistory', JSON.stringify(chatHistory));
+                    
+                    // 显示保存成功提示
+                    const savedAlert = document.createElement('div');
+                    savedAlert.className = 'alert alert-success mt-2';
+                    savedAlert.innerHTML = '<i class="fas fa-check-circle me-2"></i>对话已成功保存到历史记录';
+                    saveChatButton.parentNode.appendChild(savedAlert);
+                    
+                    // 3秒后隐藏提示
+                    setTimeout(() => {
+                        savedAlert.remove();
+                    }, 3000);
+                    
+                    // 禁用保存按钮，防止重复保存
+                    saveChatButton.disabled = true;
+                    saveChatButton.innerHTML = '<i class="fas fa-check me-1"></i>已保存';
+                } catch (e) {
+                    console.error('保存历史记录失败:', e);
+                    // 显示错误提示
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert alert-danger mt-2';
+                    errorAlert.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>保存失败，请检查浏览器存储权限';
+                    saveChatButton.parentNode.appendChild(errorAlert);
+                    
+                    // 3秒后隐藏提示
+                    setTimeout(() => {
+                        errorAlert.remove();
+                    }, 3000);
+                }
+            });
 
             // 检查是否有从练习页面传递过来的NVC数据
             try {
@@ -1167,6 +1227,19 @@
                 const selectedBotId = botSelect.value;
                 const selectedBotType = botSelect.options[botSelect.selectedIndex].textContent;
                 
+                // 重置保存按钮状态
+                saveChatButton.classList.add('d-none');
+                saveChatButton.disabled = false;
+                saveChatButton.innerHTML = '<i class="fas fa-save me-1"></i>保存对话';
+                
+                // 重置当前对话
+                currentChat = {
+                    question: userMessage,
+                    answer: "",
+                    botType: selectedBotType,
+                    timestamp: new Date().toISOString()
+                };
+                
                 // 禁用发送按钮，显示加载状态
                 sendButton.disabled = true;
                 responseContainer.innerHTML = "";
@@ -1537,6 +1610,12 @@
                             fullText = cleanedFinalContent;
                             updateResponseWithMarkdown(fullText);
                         }
+                        
+                        // 更新当前对话的回复内容
+                        currentChat.answer = fullText;
+                        
+                        // 显示保存按钮
+                        saveChatButton.classList.remove('d-none');
                     }
                     
                     // 辅助函数：移除文本中的重复部分
@@ -1641,8 +1720,7 @@
                             <p>发生跨域请求错误 (CORS)。这是由于浏览器的安全策略导致的。</p>
                             <p>解决方案:</p>
                             <ol>
-                                <li>使用浏览器插件临时禁用CORS (仅用于测试)</li>
-                                <li>或者部署自己的代理服务</li>
+                                <li>使用浏览器插件临时禁用CORS (如Chrome的"Allow CORS: Access-Control-Allow-Origin"插件)</li>
                             </ol>
                             <p><strong>技术详情:</strong> ${error.message}</p>
                         `;
