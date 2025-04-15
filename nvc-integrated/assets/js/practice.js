@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化调试功能
     initDebugFeatures();
+
+    // 从URL参数中获取案例ID并加载案例数据
+    const urlParams = new URLSearchParams(window.location.search);
+    const caseId = urlParams.get('case');
+    if (caseId) {
+        loadCaseData(caseId);
+    }
 });
 
 /**
@@ -71,6 +78,95 @@ function showRawData(data) {
 /**
  * 初始化练习页面
  */
+// 加载案例数据
+function loadCaseData(caseId) {
+    console.log('正在加载案例数据:', caseId);
+    
+    // 确保cases-data.js已加载
+    if (typeof window.casesData === 'undefined') {
+        console.error('案例数据未加载，正在重新加载cases-data.js');
+        // 动态加载cases-data.js
+        const script = document.createElement('script');
+        script.src = '../assets/js/cases-data.js?v=' + new Date().getTime(); // 添加时间戳避免缓存
+        script.onload = function() {
+            console.log('cases-data.js加载成功');
+            // 重新尝试加载案例数据
+            displayCaseData(caseId);
+        };
+        script.onerror = function() {
+            console.error('加载cases-data.js失败');
+        };
+        document.head.appendChild(script);
+        return;
+    }
+    
+    displayCaseData(caseId);
+}
+
+// 显示案例数据
+function displayCaseData(caseId) {
+    if (!window.casesData) {
+        console.error('案例数据仍未加载');
+        return;
+    }
+
+    // 查找对应的案例数据
+    const caseData = window.casesData.find(c => String(c.id) === String(caseId));
+    if (!caseData) {
+        console.error('未找到对应的案例数据:', caseId);
+        return;
+    }
+
+    // 显示案例情境
+    const caseContextContainer = document.getElementById('caseContextContainer');
+    const caseContextText = document.getElementById('caseContextText');
+    const caseTitleText = document.getElementById('caseTitleText');
+    if (caseContextContainer && caseContextText && caseTitleText) {
+        caseTitleText.textContent = caseData.title;
+        caseContextText.textContent = caseData.context;
+        caseContextContainer.style.display = 'block';
+    }
+
+    // 显示案例参考
+    const caseReferenceSection = document.getElementById('caseReferenceSection');
+    if (caseReferenceSection && caseData.nvcElements) {
+        // 先移除旧的事件监听器
+        const hideReferenceBtn = document.getElementById('hideReferenceBtn');
+        if (hideReferenceBtn) {
+            const oldClickListener = hideReferenceBtn.onclick;
+            if (oldClickListener) {
+                hideReferenceBtn.removeEventListener('click', oldClickListener);
+            }
+        }
+
+        // 填充参考内容
+        document.getElementById('observationReferenceText').textContent = caseData.nvcElements.observation;
+        document.getElementById('feelingReferenceText').textContent = caseData.nvcElements.feeling;
+        document.getElementById('needReferenceText').textContent = caseData.nvcElements.need;
+        document.getElementById('requestReferenceText').textContent = caseData.nvcElements.request;
+        caseReferenceSection.style.display = 'block';
+
+        // 重新绑定隐藏参考按钮事件
+        if (hideReferenceBtn) {
+            const clickHandler = function() {
+                caseReferenceSection.style.display = 'none';
+            };
+            hideReferenceBtn.onclick = clickHandler;
+        }
+    }
+
+    // 保存案例数据到sessionStorage以供后续使用
+    try {
+        sessionStorage.setItem('practiceNvcData', JSON.stringify({
+            caseId: caseId,
+            context: caseData.context,
+            nvcElements: caseData.nvcElements
+        }));
+    } catch (error) {
+        console.error('保存案例数据到sessionStorage时出错:', error);
+    }
+}
+
 function initPracticePage() {
     console.log('开始初始化练习页面');
     
@@ -1464,4 +1560,4 @@ function savePracticeHistory(practiceData, feedback) {
     } catch (error) {
         console.error('保存练习历史失败:', error);
     }
-} 
+}

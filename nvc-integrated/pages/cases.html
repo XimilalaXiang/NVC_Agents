@@ -308,10 +308,106 @@
             const loginUrl = './login.html?callback=' + encodeURIComponent(currentPath);
             window.location.href = loginUrl;
         };
+        
+        // 添加案例数据状态检查
+        window.checkCasesDataStatus = function() {
+            console.log('检查案例数据状态...');
+            if (window.casesData && Array.isArray(window.casesData)) {
+                console.log('案例数据已加载，共有案例:', window.casesData.length);
+                return window.casesData.length;
+            } else {
+                console.warn('案例数据未加载或格式不正确');
+                return 0;
+            }
+        };
+        
+        // 添加页面加载完成后的检查
+        window.addEventListener('load', function() {
+            console.log('页面完全加载，添加最终检查...');
+            setTimeout(function() {
+                const count = window.checkCasesDataStatus();
+                if (count === 0) {
+                    console.warn('页面加载完成后仍未发现案例数据，尝试最后修复');
+                    // 尝试触发casesDataLoaded事件
+                    if (typeof casesData !== 'undefined' && Array.isArray(casesData)) {
+                        window.casesData = casesData;
+                        const event = new CustomEvent('casesDataLoaded', { detail: { casesCount: casesData.length } });
+                        document.dispatchEvent(event);
+                    } else {
+                        console.error('最终检查: 无法找到案例数据');
+                    }
+                }
+            }, 2000);
+        });
     </script>
     <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/cases-data.js"></script>
-    <script src="../assets/js/cases.js"></script>
+    <!-- 确保先加载案例数据，再加载案例页面逻辑 -->
+    <script src="../assets/js/cases-data.js?v=1.0.1"></script>
+    <script>
+        // 案例数据加载后的中间检查
+        setTimeout(function() {
+            const count = window.checkCasesDataStatus();
+            console.log('案例数据中间检查: 发现', count, '个案例');
+            
+            // 如果案例数量不足21个，尝试重新加载cases-data.js
+            if (count > 0 && count < 21) {
+                console.warn('案例数量不足21个，强制重新加载');
+                
+                // 强制重新加载脚本，避免缓存
+                const script = document.createElement('script');
+                script.src = '../assets/js/cases-data.js?v=' + new Date().getTime(); // 添加时间戳避免缓存
+                script.onload = function() {
+                    console.log('案例数据重新加载完成，检查数量');
+                    const newCount = window.checkCasesDataStatus();
+                    console.log('重新加载后案例数量:', newCount);
+                    
+                    // 如果数量正确，尝试重新渲染
+                    if (newCount === 21) {
+                        console.log('重新加载成功，重新渲染页面');
+                        if (typeof loadCasesData === 'function') {
+                            loadCasesData();
+                        }
+                    }
+                };
+                document.head.appendChild(script);
+            }
+        }, 800);
+    </script>
+    <script src="../assets/js/cases.js?v=1.0.1"></script>
+    
+    <!-- 添加辅助脚本，确保所有案例都被正确加载 -->
+    <script>
+        // 页面加载完成后的最终检查
+        window.addEventListener('load', function() {
+            // 延迟执行，确保其他脚本都已运行
+            setTimeout(function() {
+                console.log('最终案例加载检查...');
+                
+                // 如果window.casesData存在但数量不足
+                if (window.casesData && Array.isArray(window.casesData) && window.casesData.length < 21) {
+                    console.warn('页面加载完成，但案例数量仍不足');
+                    
+                    // 显示刷新提示
+                    const container = document.querySelector('.container');
+                    if (container) {
+                        const refreshPrompt = document.createElement('div');
+                        refreshPrompt.className = 'alert alert-info alert-dismissible fade show mt-3';
+                        refreshPrompt.setAttribute('role', 'alert');
+                        refreshPrompt.innerHTML = `
+                            <strong>提示：</strong> 部分案例可能未完全加载。您当前看到 ${window.casesData.length} 个案例，应有21个。
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <div class="mt-2">
+                                <button class="btn btn-primary btn-sm" onclick="window.location.reload(true)">
+                                    <i class="fas fa-sync-alt me-1"></i>刷新页面
+                                </button>
+                            </div>
+                        `;
+                        container.prepend(refreshPrompt);
+                    }
+                }
+            }, 3000);
+        });
+    </script>
 
     <!-- 在页脚前添加问问大象品牌展示区 -->
     <section class="py-5 bg-light bg-glow-secondary">
