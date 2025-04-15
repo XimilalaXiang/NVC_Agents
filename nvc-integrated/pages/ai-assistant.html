@@ -15,101 +15,199 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
     <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
     <style>
-        /* 整体样式 - 苹果风格设计 */
+        /* 整体样式 - 现代简约设计 */
         body {
             font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
                 Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
-            line-height: 1.5;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            min-height: 100vh;
         }
 
         .ai-container {
-            max-width: 800px;
-            margin: 30px auto;
+            max-width: 1200px;
+            margin: 2rem auto;
             background-color: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
         }
 
-        h1 {
-            font-size: 28px;
+        .ai-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .ai-assistant-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ai-assistant-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .ai-assistant-header img {
+            width: 32px;
+            height: 32px;
+            margin-right: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        .ai-assistant-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 24px;
-            color: #1d1d1f;
-            text-align: center;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         /* 输入区域样式 */
         .input-section {
-            margin-bottom: 24px;
+            margin-bottom: 2rem;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .input-section:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #0d6efd;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        label:hover {
+            color: #0a58ca;
         }
 
         textarea {
             width: 100%;
-            height: 120px;
-            padding: 12px;
-            border: 1px solid #d2d2d7;
-            border-radius: 10px;
+            height: 150px;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 1rem;
             box-sizing: border-box;
             resize: vertical;
-            transition: border-color 0.2s;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
         }
 
         textarea:focus {
-            border-color: #0071e3;
+            border-color: #0d6efd;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+            background-color: #ffffff;
         }
 
         button {
-            background-color: #0071e3;
+            background-color: #0d6efd;
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            margin-top: 1rem;
         }
 
         button:hover {
-            background-color: #0077ed;
+            background-color: #0a58ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+        
+        #save-chat-button {
+            transition: none;
+            transform: none !important;
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
-            background-color: #a1a1a6;
+            background-color: #6c757d;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         /* 响应区域样式 */
         .response-section {
-            margin-top: 24px;
+            margin-top: 2rem;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .response-section:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         }
 
         #response-container {
-            background-color: #f5f5f7;
-            border-radius: 10px;
-            padding: 16px;
-            min-height: 200px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            min-height: 250px;
             overflow-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.6;
+            font-size: 1rem;
+            line-height: 1.7;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        #response-container:hover {
+            border-color: #0d6efd;
+            background-color: #ffffff;
         }
 
         /* Markdown样式美化 */
         .markdown-body {
-            color: #1d1d1f;
-            min-height: 200px;
+            color: #212529;
+            min-height: 250px;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .markdown-body:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
 
         .markdown-body h1, 
@@ -118,50 +216,58 @@
         .markdown-body h4, 
         .markdown-body h5, 
         .markdown-body h6 {
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            line-height: 1.25;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #0d6efd;
         }
 
         .markdown-body h1 {
-            font-size: 1.8em;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: .3em;
+            font-size: 2em;
+            border-bottom: 2px solid rgba(13, 110, 253, 0.2);
+            padding-bottom: 0.5rem;
         }
 
         .markdown-body h2 {
-            font-size: 1.5em;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: .3em;
+            font-size: 1.6em;
+            border-bottom: 2px solid rgba(13, 110, 253, 0.1);
+            padding-bottom: 0.4rem;
         }
 
         .markdown-body p {
             margin-top: 0;
-            margin-bottom: 16px;
+            margin-bottom: 1.2rem;
+            line-height: 1.7;
+            color: #495057;
         }
 
         .markdown-body ul, 
         .markdown-body ol {
-            padding-left: 2em;
-            margin-top: 0;
-            margin-bottom: 16px;
+            padding-left: 2rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1.2rem;
+            color: #495057;
         }
 
         .markdown-body blockquote {
-            margin: 0;
-            padding: 0 1em;
-            color: #6a737d;
-            border-left: 3px solid #dfe2e5;
+            margin: 1.5rem 0;
+            padding: 1rem 1.5rem;
+            color: #495057;
+            border-left: 4px solid #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+            border-radius: 0 8px 8px 0;
         }
 
         .markdown-body pre {
-            padding: 16px;
+            padding: 1.2rem;
             overflow: auto;
-            font-size: 85%;
-            line-height: 1.45;
-            background-color: #f6f8fa;
-            border-radius: 6px;
+            font-size: 90%;
+            line-height: 1.5;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            margin: 1.2rem 0;
         }
 
         .markdown-body code {
@@ -485,8 +591,9 @@
 
     <div class="container my-5">
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-robot me-2"></i>非暴力沟通 AI 助手</h5>
+            <div class="ai-assistant-header glow-hover">
+                <img src="../assets/img/ai-assistant-icon.svg" alt="AI Assistant Icon">
+                <h1>非暴力沟通 AI 助手</h1>
             </div>
             <div class="card-body">
                 <div class="bot-select mb-4">
