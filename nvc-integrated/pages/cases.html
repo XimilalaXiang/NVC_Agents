@@ -148,7 +148,10 @@
                         <i class="fas fa-star"></i>
                     </div>
                     <h5>收藏与练习</h5>
-                    <p>登录后可以收藏喜欢的案例，并进入练习模式实践NVC表达</p>
+                    <p>可以收藏喜欢的案例，并进入练习模式实践NVC表达</p>
+                    <div class="badge bg-warning text-dark mt-2">
+                        <i class="fas fa-tools me-1"></i> 收藏功能开发中
+                    </div>
                 </div>
             </div>
         </div>
@@ -600,5 +603,97 @@
             100% { transform: translate(8px, -12px); }
         }
     </style>
+
+    <!-- 添加内联脚本，确保收藏功能在网站上正常工作 -->
+    <script>
+        // 等待页面完全加载后执行
+        window.addEventListener('load', function() {
+            // 确保showToast函数可用
+            if (typeof showToast !== 'function') {
+                // 如果showToast函数不可用，创建一个简单的替代实现
+                window.showToast = function(message, type) {
+                    console.log('显示提示:', message, type);
+                    
+                    // 创建一个简单的提示框
+                    const toastDiv = document.createElement('div');
+                    toastDiv.style.position = 'fixed';
+                    toastDiv.style.bottom = '20px';
+                    toastDiv.style.right = '20px';
+                    toastDiv.style.backgroundColor = type === 'success' ? '#28a745' : 
+                                                    type === 'info' ? '#17a2b8' : 
+                                                    type === 'warning' ? '#ffc107' : '#dc3545';
+                    toastDiv.style.color = 'white';
+                    toastDiv.style.padding = '15px 20px';
+                    toastDiv.style.borderRadius = '8px';
+                    toastDiv.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    toastDiv.style.zIndex = '9999';
+                    toastDiv.style.minWidth = '280px';
+                    toastDiv.style.textAlign = 'center';
+                    toastDiv.innerText = message;
+                    
+                    document.body.appendChild(toastDiv);
+                    
+                    // 3秒后消失
+                    setTimeout(function() {
+                        toastDiv.style.opacity = '0';
+                        toastDiv.style.transition = 'opacity 0.5s ease';
+                        
+                        setTimeout(function() {
+                            document.body.removeChild(toastDiv);
+                        }, 500);
+                    }, 3000);
+                };
+            }
+            
+            // 添加备用的收藏按钮点击事件
+            const bookmarkButtons = document.querySelectorAll('.case-bookmark');
+            if (bookmarkButtons.length > 0) {
+                console.log('找到收藏按钮，添加备用点击事件');
+                
+                bookmarkButtons.forEach(function(button) {
+                    // 移除已有事件
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
+                    
+                    // 添加新事件
+                    newButton.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        
+                        console.log('点击收藏按钮');
+                        
+                        // 显示提示
+                        if (typeof showToast === 'function') {
+                            showToast('收藏功能还在开发中，敬请期待！', 'info');
+                        } else {
+                            alert('收藏功能还在开发中，敬请期待！');
+                        }
+                        
+                        // 添加直接的抖动动画
+                        const button = this;
+                        const startTime = Date.now();
+                        const duration = 500; // 500毫秒
+                        const originalTransform = button.style.transform || '';
+                        
+                        function shake() {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            
+                            if (progress < 1) {
+                                const offset = Math.sin(progress * Math.PI * 5) * 5;
+                                button.style.transform = `translateX(${offset}px)`;
+                                requestAnimationFrame(shake);
+                            } else {
+                                button.style.transform = originalTransform;
+                            }
+                        }
+                        
+                        // 启动抖动动画
+                        requestAnimationFrame(shake);
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
